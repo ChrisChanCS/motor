@@ -1,0 +1,4 @@
+Motor tx_type try_num commit_num abort_rate
+RWUpdateOne 26753781 22351053 0.164565
+RWReadOne 6693108 5648947 0.156005
+

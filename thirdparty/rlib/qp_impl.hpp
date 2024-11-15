@@ -178,7 +178,7 @@ class RCQPImpl {
     struct ibv_qp_attr qp_attr = {};
 
     qp_attr.qp_state = IBV_QPS_RTR;
-    qp_attr.path_mtu = IBV_MTU_4096;
+    qp_attr.path_mtu = IBV_MTU_1024;
     qp_attr.dest_qp_num = attr.qpn;
     qp_attr.rq_psn = config.rq_psn;  // should this match the sender's psn ?
     qp_attr.max_dest_rd_atomic = config.max_dest_rd_atomic;
@@ -213,7 +213,7 @@ class RCQPImpl {
     struct ibv_qp_attr qp_attr = {};
 
     qp_attr.qp_state = IBV_QPS_RTR;
-    qp_attr.path_mtu = IBV_MTU_4096;
+    qp_attr.path_mtu = IBV_MTU_1024;
     qp_attr.dest_qp_num = attr.qpn;
     qp_attr.rq_psn = config.rq_psn;  // should this match the sender's psn ?
     qp_attr.max_dest_rd_atomic = config.max_dest_rd_atomic;
