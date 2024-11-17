@@ -7,7 +7,8 @@
 
 using namespace rdmaio;
 
-void Handler::ConfigureComputeNode(int argc, char* argv[]) {
+void Handler::ConfigureComputeNode(int argc, char *argv[])
+{
   // ./run <benchmark_name> <thread_num> <coroutine_num> <isolation_level>
 
   std::string config_file = "../../../config/cn_config.json";
@@ -18,9 +19,12 @@ void Handler::ConfigureComputeNode(int argc, char* argv[]) {
   system(s2.c_str());
 
   int iso_level_value = 0;
-  if (iso_level == "SI") {
+  if (iso_level == "SI")
+  {
     iso_level_value = 1;
-  } else if (iso_level == "SR") {
+  }
+  else if (iso_level == "SR")
+  {
     iso_level_value = 2;
   }
 
@@ -28,7 +32,8 @@ void Handler::ConfigureComputeNode(int argc, char* argv[]) {
   system(s.c_str());
 }
 
-void Handler::ConfigureComputeNodeForMICRO(int argc, char* argv[]) {
+void Handler::ConfigureComputeNodeForMICRO(int argc, char *argv[])
+{
   // ./run_micro <thread_num> <coroutine_num> <access_pattern> <skewness> <write_ratio> <isolation_level>
 
   std::string workload_filepath = "../../../config/micro_config.json";
@@ -47,11 +52,14 @@ void Handler::ConfigureComputeNodeForMICRO(int argc, char* argv[]) {
   s = "sed -i '6c \"coroutine_num\": " + coroutine_num + ",' " + config_file;
   system(s.c_str());
 
-  if (access_pattern == "skewed") {
+  if (access_pattern == "skewed")
+  {
     // skewed
     s = "sed -i '4c \"is_skewed\": true,' " + workload_filepath;
     s = "sed -i '5c \"zipf_theta\": " + skewness + ",' " + workload_filepath;
-  } else if (access_pattern == "uniform") {
+  }
+  else if (access_pattern == "uniform")
+  {
     // uniform
     s = "sed -i '4c \"is_skewed\": false,' " + workload_filepath;
   }
@@ -62,9 +70,74 @@ void Handler::ConfigureComputeNodeForMICRO(int argc, char* argv[]) {
   system(s.c_str());
 
   int iso_level_value = 0;
-  if (iso_level == "SI") {
+  if (iso_level == "SI")
+  {
     iso_level_value = 1;
-  } else if (iso_level == "SR") {
+  }
+  else if (iso_level == "SR")
+  {
+    iso_level_value = 2;
+  }
+  s = "sed -i '9c \"iso_level\": " + std::to_string(iso_level_value) + ",' " + config_file;
+  system(s.c_str());
+}
+
+void Handler::ConfigureComputeNodeForYCSB(int argc, char *argv[])
+{
+  // ./run_ycsb <thread_num> <coroutine_num> <access_pattern> <skewness> <readWriteRatio> <readOnlyTransaction> <crossPartitionProbability> <isolation_level>
+
+  std::string workload_filepath = "../../../config/ycsb_config.json";
+  std::string config_file = "../../../config/cn_config.json";
+
+  std::string thread_num = std::string(argv[1]);
+  std::string coroutine_num = std::string(argv[2]);
+
+  std::string access_pattern = argv[3];
+  std::string skewness = argv[4];
+
+  std::string readWriteRatio = argv[5];
+  std::string readOnlyTransaction = argv[6];
+  std::string crossPartitionProbability = argv[7];
+  std::string iso_level = std::string(argv[8]);
+
+  std::string s = "sed -i '5c \"thread_num_per_machine\": " + thread_num + ",' " + config_file;
+  system(s.c_str());
+
+  s = "sed -i '6c \"coroutine_num\": " + coroutine_num + ",' " + config_file;
+  system(s.c_str());
+
+  if (access_pattern == "skewed")
+  {
+    // skewed
+    s = "sed -i '9c \"is_skewed\": true,' " + workload_filepath;
+    s = "sed -i '10c \"zipf_theta\": " + skewness + ",' " + workload_filepath;
+  }
+  else if (access_pattern == "uniform")
+  {
+    // uniform
+    s = "sed -i '9c \"is_skewed\": false,' " + workload_filepath;
+  }
+  system(s.c_str());
+
+  // readWriteRatio
+  s = "sed -i '6c \"readWriteRatio\": " + readWriteRatio + ",' " + workload_filepath;
+  system(s.c_str());
+
+  // readOnlyTransaction
+  s = "sed -i '7c \"readOnlyTransaction\": " + readOnlyTransaction + ",' " + workload_filepath;
+  system(s.c_str());
+
+  // write ratio
+  s = "sed -i '8c \"crossPartitionProbability\": " + crossPartitionProbability + ",' " + workload_filepath;
+  system(s.c_str());
+
+  int iso_level_value = 0;
+  if (iso_level == "SI")
+  {
+    iso_level_value = 1;
+  }
+  else if (iso_level == "SR")
+  {
     iso_level_value = 2;
   }
   s = "sed -i '9c \"iso_level\": " + std::to_string(iso_level_value) + ",' " + config_file;

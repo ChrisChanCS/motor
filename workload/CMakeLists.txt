@@ -8,3 +8,5 @@ add_subdirectory(tpcc)
 add_subdirectory(smallbank)
 
 add_subdirectory(micro)
+
+add_subdirectory(ycsb)

@@ -8,18 +8,21 @@
 #include "base/common.h"
 #include "config/table_type.h"
 
-union micro_key_t {
+union micro_key_t
+{
   uint64_t micro_id;
   uint64_t item_key;
 
-  micro_key_t() {
+  micro_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(micro_key_t) == sizeof(uint64_t), "");
 
-enum micro_val_bitmap : int {
+enum micro_val_bitmap : int
+{
   d1 = 0,
   d2,
   d3,
@@ -27,7 +30,8 @@ enum micro_val_bitmap : int {
   d5,
 };
 
-struct micro_val_t {
+struct micro_val_t
+{
   // 40 bytes, consistent with FaSST
   uint64_t d1;
   uint64_t d2;
@@ -47,7 +51,8 @@ constexpr size_t micro_val_t_size = sizeof(micro_val_t);
 // Helpers for generating workload
 #define MICRO_TX_TYPES 2
 
-enum MicroTxType : int {
+enum MicroTxType : int
+{
   kUpdateOne,
   kReadOne
 };
@@ -80,7 +85,8 @@ enum MicroTxType : int {
 const std::string MICRO_TX_NAME[MICRO_TX_TYPES] = {"RWUpdateOne", "RWReadOne"};
 
 // Table id
-enum MicroTableType : uint64_t {
+enum MicroTableType : uint64_t
+{
   kMicroTable = TABLE_MICRO,
 };
 const int MICRO_TOTAL_TABLES = 1;

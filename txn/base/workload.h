@@ -8,6 +8,7 @@
 #include "smallbank/smallbank_table.h"
 #include "tatp/tatp_table.h"
 #include "tpcc/tpcc_table.h"
+#include "ycsb/ycsb_table.h"
 
 #if WORKLOAD_TPCC
 
@@ -35,7 +36,7 @@ constexpr size_t ATTR_BAR_SIZE[TPCC_TOTAL_TABLES] = {
 
     // customer, max(c_balance+c_ytd_payment+c_payment_cnt, c_balance+c_ytd_payment+c_payment_cnt+c_data, c_balance+c_delivery_cnt)
     // (sizeof(tpcc_customer_val_t::c_balance) + sizeof(tpcc_customer_val_t::c_ytd_payment) + sizeof(tpcc_customer_val_t::c_payment_cnt) + sizeof(tpcc_customer_val_t::c_data)) * MAX_VCELL_NUM,
-    12 * MAX_VCELL_NUM + 513 * 1 + 8 * 1,  // according to the frequency
+    12 * MAX_VCELL_NUM + 513 * 1 + 8 * 1, // according to the frequency
 
     // history, fixed, insert -> update
     (sizeof(tpcc_history_val_t::h_date) + sizeof(tpcc_history_val_t::h_amount) + sizeof(tpcc_history_val_t::h_data)) * MAX_VCELL_NUM,
@@ -45,11 +46,11 @@ constexpr size_t ATTR_BAR_SIZE[TPCC_TOTAL_TABLES] = {
 
     // order, max(o_c_id+o_carrier_id+o_ol_cnt+o_all_local+o_entry_d <insert -> update>, o_carrier_id)
     // (sizeof(tpcc_order_val_t::o_c_id) + sizeof(tpcc_order_val_t::o_carrier_id) + sizeof(tpcc_order_val_t::o_ol_cnt) + sizeof(tpcc_order_val_t::o_all_local) + sizeof(tpcc_order_val_t::o_entry_d)) * MAX_VCELL_NUM,
-    20 * (MAX_VCELL_NUM / 2) + 4 * (MAX_VCELL_NUM / 2),  // according to the frequency
+    20 * (MAX_VCELL_NUM / 2) + 4 * (MAX_VCELL_NUM / 2), // according to the frequency
 
     // order line, max(ol_i_id+ol_delivery_d+ol_amount+ol_supply_w_id+pl_quantity <insert->update>, ol_delivery_d)
     // (sizeof(tpcc_order_line_val_t::ol_i_id) + sizeof(tpcc_order_line_val_t::ol_delivery_d) + sizeof(tpcc_order_line_val_t::ol_amount) + sizeof(tpcc_order_line_val_t::ol_supply_w_id) + sizeof(tpcc_order_line_val_t::ol_quantity)) * MAX_VCELL_NUM,
-    20 * (MAX_VCELL_NUM / 2 + 1) + 4 * (MAX_VCELL_NUM / 2),  // according to the frequency
+    20 * (MAX_VCELL_NUM / 2 + 1) + 4 * (MAX_VCELL_NUM / 2), // according to the frequency
 
     // item
     0,
@@ -70,9 +71,9 @@ constexpr size_t SLOT_NUM[TPCC_TOTAL_TABLES] = {
 constexpr int ATTRIBUTE_NUM[TPCC_TOTAL_TABLES] = {8, 9, 18, 3, 1, 5, 6, 4, 6, 1, 1};
 
 constexpr int ATTR_SIZE[TPCC_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
-    {                                      // warehouse
-     0,                                    // used for easy calculating attribute index
-     sizeof(tpcc_warehouse_val_t::w_tax),  // 1-st attribute
+    {                                     // warehouse
+     0,                                   // used for easy calculating attribute index
+     sizeof(tpcc_warehouse_val_t::w_tax), // 1-st attribute
      sizeof(tpcc_warehouse_val_t::w_ytd),
      sizeof(tpcc_warehouse_val_t::w_name),
      sizeof(tpcc_warehouse_val_t::w_street_1),
@@ -80,8 +81,8 @@ constexpr int ATTR_SIZE[TPCC_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
      sizeof(tpcc_warehouse_val_t::w_city),
      sizeof(tpcc_warehouse_val_t::w_state),
      sizeof(tpcc_warehouse_val_t::w_zip)},
-    {    // district
-     0,  // used for easy calculating attribute index
+    {   // district
+     0, // used for easy calculating attribute index
      sizeof(tpcc_district_val_t::d_tax),
      sizeof(tpcc_district_val_t::d_ytd),
      sizeof(tpcc_district_val_t::d_next_o_id),
@@ -91,8 +92,8 @@ constexpr int ATTR_SIZE[TPCC_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
      sizeof(tpcc_district_val_t::d_city),
      sizeof(tpcc_district_val_t::d_state),
      sizeof(tpcc_district_val_t::d_zip)},
-    {    // customer
-     0,  // used for easy calculating attribute index
+    {   // customer
+     0, // used for easy calculating attribute index
      sizeof(tpcc_customer_val_t::c_credit_lim),
      sizeof(tpcc_customer_val_t::c_data),
      sizeof(tpcc_customer_val_t::c_discount),
@@ -111,48 +112,48 @@ constexpr int ATTR_SIZE[TPCC_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
      sizeof(tpcc_customer_val_t::c_phone),
      sizeof(tpcc_customer_val_t::c_since),
      sizeof(tpcc_customer_val_t::c_credit)},
-    {    // history
-     0,  // used for easy calculating attribute index
+    {   // history
+     0, // used for easy calculating attribute index
      sizeof(tpcc_history_val_t::h_amount),
      sizeof(tpcc_history_val_t::h_date),
      sizeof(tpcc_history_val_t::h_data)},
-    {    // new order
-     0,  // used for easy calculating attribute index
+    {   // new order
+     0, // used for easy calculating attribute index
      sizeof(tpcc_new_order_val_t::no_dummy)},
-    {    // order
-     0,  // used for easy calculating attribute index
+    {   // order
+     0, // used for easy calculating attribute index
      sizeof(tpcc_order_val_t::o_c_id),
      sizeof(tpcc_order_val_t::o_carrier_id),
      sizeof(tpcc_order_val_t::o_ol_cnt),
      sizeof(tpcc_order_val_t::o_all_local),
      sizeof(tpcc_order_val_t::o_entry_d)},
-    {    // order line
-     0,  // used for easy calculating attribute index
+    {   // order line
+     0, // used for easy calculating attribute index
      sizeof(tpcc_order_line_val_t::ol_i_id),
      sizeof(tpcc_order_line_val_t::ol_supply_w_id),
      sizeof(tpcc_order_line_val_t::ol_quantity),
      sizeof(tpcc_order_line_val_t::ol_amount),
      sizeof(tpcc_order_line_val_t::ol_delivery_d),
      sizeof(tpcc_order_line_val_t::ol_dist_info)},
-    {    // item
-     0,  // used for easy calculating attribute index
+    {   // item
+     0, // used for easy calculating attribute index
      sizeof(tpcc_item_val_t::i_im_id),
      sizeof(tpcc_item_val_t::i_price),
      sizeof(tpcc_item_val_t::i_name),
      sizeof(tpcc_item_val_t::i_data)},
-    {    // stock
-     0,  // used for easy calculating attribute index
+    {   // stock
+     0, // used for easy calculating attribute index
      sizeof(tpcc_stock_val_t::s_quantity),
      sizeof(tpcc_stock_val_t::s_ytd),
      sizeof(tpcc_stock_val_t::s_order_cnt),
      sizeof(tpcc_stock_val_t::s_remote_cnt),
      sizeof(tpcc_stock_val_t::s_dist),
      sizeof(tpcc_stock_val_t::s_data)},
-    {    // customer index
-     0,  // used for easy calculating attribute index
+    {   // customer index
+     0, // used for easy calculating attribute index
      sizeof(tpcc_customer_index_val_t::c_id)},
-    {    // order index
-     0,  // used for easy calculating attribute index
+    {   // order index
+     0, // used for easy calculating attribute index
      sizeof(tpcc_order_index_val_t::o_id)}
 
 };
@@ -171,7 +172,7 @@ constexpr size_t SLOT_NUM[TATP_TOTAL_TABLES] = {
     1, 5, 5, 5, 5};
 
 constexpr size_t ATTR_BAR_SIZE[TATP_TOTAL_TABLES] = {
-    4 * MAX_VCELL_NUM + 2 * 1,  // according to the frequency
+    4 * MAX_VCELL_NUM + 2 * 1, // according to the frequency
     0,
     // fixed
     sizeof(tatp_specfac_val_t::data_a) * MAX_VCELL_NUM,
@@ -247,5 +248,34 @@ constexpr int ATTR_SIZE[MICRO_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
      sizeof(micro_val_t::d3),
      sizeof(micro_val_t::d4),
      sizeof(micro_val_t::d5)}};
+
+#elif WORKLOAD_YCSB
+
+// size of each table
+constexpr size_t TABLE_VALUE_SIZE[YCSB_TOTAL_TABLES] = {sizeof(ycsb_val_t)};
+constexpr size_t SLOT_NUM[YCSB_TOTAL_TABLES] = {1};
+
+// max-size modified field of each table
+constexpr size_t ATTR_BAR_SIZE[YCSB_TOTAL_TABLES] = {
+    // fixed
+    sizeof(ycsb_val_t) * MAX_VCELL_NUM,
+};
+
+// field of each table
+constexpr int ATTRIBUTE_NUM[YCSB_TOTAL_TABLES] = {10};
+
+// size of each field
+constexpr int ATTR_SIZE[YCSB_TOTAL_TABLES][MAX_ATTRIBUTE_NUM_PER_TABLE] = {
+    {0,
+     sizeof(ycsb_val_t::Y_F01),
+     sizeof(ycsb_val_t::Y_F02),
+     sizeof(ycsb_val_t::Y_F03),
+     sizeof(ycsb_val_t::Y_F04),
+     sizeof(ycsb_val_t::Y_F05),
+     sizeof(ycsb_val_t::Y_F06),
+     sizeof(ycsb_val_t::Y_F07),
+     sizeof(ycsb_val_t::Y_F08),
+     sizeof(ycsb_val_t::Y_F09),
+     sizeof(ycsb_val_t::Y_F10)}};
 
 #endif

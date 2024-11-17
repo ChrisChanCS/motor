@@ -16,15 +16,20 @@
 
 #elif WORKLOAD_MICRO
 #define MAX_LOCKED_KEY_NUM 10
+
+#elif WORKLOAD_YCSB
+#define MAX_LOCKED_KEY_NUM 10
 #endif
 
-struct LockedKeyEntry {
+struct LockedKeyEntry
+{
   node_id_t remote_node;
   offset_t remote_off;
 };
 
 // For each coordinator, i.e., coroutine
-struct LockedKeyTable {
+struct LockedKeyTable
+{
   tx_id_t tx_id;
   int num_entry;
   LockedKeyEntry entries[MAX_LOCKED_KEY_NUM];

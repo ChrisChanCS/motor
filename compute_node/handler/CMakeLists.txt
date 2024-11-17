@@ -12,4 +12,4 @@ add_library(handler STATIC
 
 set_target_properties(handler PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries(handler motor tatp_db tatp_txn smallbank_db smallbank_txn tpcc_db tpcc_txn micro_db micro_txn)
+target_link_libraries(handler motor tatp_db tatp_txn smallbank_db smallbank_txn tpcc_db tpcc_txn micro_db micro_txn ycsb_db ycsb_txn)

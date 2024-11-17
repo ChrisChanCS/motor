@@ -8,3 +8,4 @@
 #define TABLE_TPCC 0
 #define TABLE_SMALLBANK 0
 #define TABLE_MICRO 0
+#define TABLE_YCSB 0

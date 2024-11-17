@@ -13,13 +13,16 @@
 #include <string>
 #include <vector>
 
-class Handler {
- public:
+class Handler
+{
+public:
   Handler() {}
 
-  void ConfigureComputeNode(int argc, char* argv[]);
+  void ConfigureComputeNode(int argc, char *argv[]);
 
-  void ConfigureComputeNodeForMICRO(int argc, char* argv[]);
+  void ConfigureComputeNodeForMICRO(int argc, char *argv[]);
+
+  void ConfigureComputeNodeForYCSB(int argc, char *argv[]);
 
   void GenThreads(std::string bench_name);
 

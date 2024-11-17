@@ -16,6 +16,7 @@
 #include "smallbank/smallbank_txn.h"
 #include "tatp/tatp_txn.h"
 #include "tpcc/tpcc_txn.h"
+#include "ycsb/ycsb_txn.h"
 #include "util/latency.h"
 #include "util/zipf.h"
 
@@ -44,68 +45,81 @@ extern uint64_t try_times[MAX_TNUM_PER_CN];
 extern std::atomic<int> probe_times;
 extern std::atomic<bool> probe[MAX_TNUM_PER_CN];
 
-__thread std::vector<TpProbe>* tp_probe_list;
+__thread std::vector<TpProbe> *tp_probe_list;
 /////////////////////////////////////////////////////////
 
 __thread size_t ATTEMPTED_NUM;
-__thread uint64_t seed;                           // Thread-global random seed
-__thread FastRandom* random_generator = nullptr;  // Per coroutine random generator
+__thread uint64_t seed;                          // Thread-global random seed
+__thread FastRandom *random_generator = nullptr; // Per coroutine random generator
 __thread t_id_t thread_gid;
 __thread t_id_t thread_local_id;
 
-__thread TATP* tatp_client = nullptr;
-__thread SmallBank* smallbank_client = nullptr;
-__thread TPCC* tpcc_client = nullptr;
+__thread TATP *tatp_client = nullptr;
+__thread SmallBank *smallbank_client = nullptr;
+__thread TPCC *tpcc_client = nullptr;
 
-__thread MetaManager* meta_man;
-__thread QPManager* qp_man;
+__thread MetaManager *meta_man;
+__thread QPManager *qp_man;
 
-__thread LocalBufferAllocator* rdma_buffer_allocator;
-__thread RemoteDeltaOffsetAllocator* delta_offset_allocator;
-__thread LockedKeyTable* locked_key_table;
-__thread AddrCache* addr_cache;
+__thread LocalBufferAllocator *rdma_buffer_allocator;
+__thread RemoteDeltaOffsetAllocator *delta_offset_allocator;
+__thread LockedKeyTable *locked_key_table;
+__thread AddrCache *addr_cache;
 
-__thread TATPTxType* tatp_workgen_arr;
-__thread SmallBankTxType* smallbank_workgen_arr;
-__thread TPCCTxType* tpcc_workgen_arr;
+__thread TATPTxType *tatp_workgen_arr;
+__thread SmallBankTxType *smallbank_workgen_arr;
+__thread TPCCTxType *tpcc_workgen_arr;
 
 __thread coro_id_t coro_num;
-__thread CoroutineScheduler* coro_sched;  // Each transaction thread has a coroutine scheduler
+__thread CoroutineScheduler *coro_sched; // Each transaction thread has a coroutine scheduler
 
 // Performance measurement (thread granularity)
 __thread struct timespec msr_start, msr_end, last_end;
-__thread double* timer;
-__thread uint64_t stat_attempted_tx_total = 0;  // Issued transaction number
-__thread uint64_t stat_committed_tx_total = 0;  // Committed transaction number
+__thread double *timer;
+__thread uint64_t stat_attempted_tx_total = 0; // Issued transaction number
+__thread uint64_t stat_committed_tx_total = 0; // Committed transaction number
 __thread uint64_t last_stat_attempted_tx_total = 0;
 __thread uint64_t last_stat_committed_tx_total = 0;
-const coro_id_t POLL_ROUTINE_ID = 0;  // The poll coroutine ID
+const coro_id_t POLL_ROUTINE_ID = 0; // The poll coroutine ID
 
 // For MICRO benchmark
-__thread ZipfGen* zipf_gen = nullptr;
+__thread ZipfGen *zipf_gen = nullptr;
 __thread bool is_skewed;
 __thread uint64_t data_set_size;
 __thread uint64_t num_keys_global;
 __thread uint64_t write_ratio;
+__thread uint64_t num_keys_partition;
+__thread uint64_t partition_num;
+
+// For YCSB benchmark
+// __thread ZipfGen *zipf_gen = nullptr;
+// __thread bool is_skewed;
+__thread uint64_t readWriteRatio;
+__thread uint64_t readOnlyTransaction;
+__thread uint64_t crossPartitionProbability;
 
 // Stat the commit rate
-__thread uint64_t* thread_local_try_times;
-__thread uint64_t* thread_local_commit_times;
+__thread uint64_t *thread_local_try_times;
+__thread uint64_t *thread_local_commit_times;
 /////////////////////////////////////////////////////////
 
 // Coroutine 0 in each thread does polling
-void Poll(coro_yield_t& yield) {
-  while (true) {
+void Poll(coro_yield_t &yield)
+{
+  while (true)
+  {
     coro_sched->PollCompletion(thread_gid);
-    Coroutine* next = coro_sched->coro_head->next_coro;
-    if (next->coro_id != POLL_ROUTINE_ID) {
+    Coroutine *next = coro_sched->coro_head->next_coro;
+    if (next->coro_id != POLL_ROUTINE_ID)
+    {
       // RDMA_LOG(DBG) << "Coro 0 yields to coro " << next->coro_id;
       coro_sched->RunCoroutine(yield, next);
     }
   }
 }
 
-void RecordTpLat(double msr_sec) {
+void RecordTpLat(double msr_sec)
+{
   double attemp_tput = (double)stat_attempted_tx_total / msr_sec;
   double tx_tput = (double)stat_committed_tx_total / msr_sec;
 
@@ -121,7 +135,8 @@ void RecordTpLat(double msr_sec) {
   medianlat_vec.push_back(percentile_50);
   taillat_vec.push_back(percentile_99);
 
-  for (size_t i = 0; i < total_try_times.size(); i++) {
+  for (size_t i = 0; i < total_try_times.size(); i++)
+  {
     // Records the total number of tried and committed txn in all threads
     // across all txn types (i.e., i) in the current workload
     total_try_times[i] += thread_local_try_times[i];
@@ -132,9 +147,10 @@ void RecordTpLat(double msr_sec) {
 }
 
 // Run actual transactions
-void RunTATP(coro_yield_t& yield, coro_id_t coro_id) {
+void RunTATP(coro_yield_t &yield, coro_id_t coro_id)
+{
   // Each coroutine has a txn: Each coroutine is a coordinator
-  TXN* txn = new TXN(meta_man,
+  TXN *txn = new TXN(meta_man,
                      qp_man,
                      thread_gid,
                      coro_id,
@@ -148,68 +164,86 @@ void RunTATP(coro_yield_t& yield, coro_id_t coro_id) {
 
   // Running transactions
   clock_gettime(CLOCK_REALTIME, &msr_start);
-  while (true) {
+  while (true)
+  {
     // Guarantee that each coroutine has a different seed
     TATPTxType tx_type = tatp_workgen_arr[FastRand(&seed) % 100];
-    uint64_t iter = ++tx_id_generator;  // Global atomic transaction id
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
     stat_attempted_tx_total++;
     clock_gettime(CLOCK_REALTIME, &tx_start_time);
-    switch (tx_type) {
-      case TATPTxType::kGetSubsciberData: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxGetSubsciberData(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kGetNewDestination: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxGetNewDestination(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kGetAccessData: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxGetAccessData(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kUpdateSubscriberData: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxUpdateSubscriberData(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kUpdateLocation: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxUpdateLocation(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kInsertCallForwarding: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxInsertCallForwarding(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case TATPTxType::kDeleteCallForwarding: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxDeleteCallForwarding(tatp_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      default:
-        printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
-        abort();
+    switch (tx_type)
+    {
+    case TATPTxType::kGetSubsciberData:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxGetSubsciberData(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kGetNewDestination:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxGetNewDestination(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kGetAccessData:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxGetAccessData(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kUpdateSubscriberData:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxUpdateSubscriberData(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kUpdateLocation:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxUpdateLocation(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kInsertCallForwarding:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxInsertCallForwarding(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case TATPTxType::kDeleteCallForwarding:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxDeleteCallForwarding(tatp_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    default:
+      printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
+      abort();
     }
 
     /********************************** Stat begin *****************************************/
     // Stat after one transaction finishes
-    if (tx_committed) {
+    if (tx_committed)
+    {
       clock_gettime(CLOCK_REALTIME, &tx_end_time);
       double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
       timer[stat_committed_tx_total++] = tx_usec;
     }
-    if (stat_attempted_tx_total >= ATTEMPTED_NUM) {
+    if (stat_attempted_tx_total >= ATTEMPTED_NUM)
+    {
       // A coroutine calculate the total execution time and exits
       clock_gettime(CLOCK_REALTIME, &msr_end);
       // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
@@ -223,9 +257,10 @@ void RunTATP(coro_yield_t& yield, coro_id_t coro_id) {
   delete txn;
 }
 
-void RunSmallBank(coro_yield_t& yield, coro_id_t coro_id) {
+void RunSmallBank(coro_yield_t &yield, coro_id_t coro_id)
+{
   // Each coroutine has a txn: Each coroutine is a coordinator
-  TXN* txn = new TXN(meta_man,
+  TXN *txn = new TXN(meta_man,
                      qp_man,
                      thread_gid,
                      coro_id,
@@ -239,61 +274,77 @@ void RunSmallBank(coro_yield_t& yield, coro_id_t coro_id) {
 
   // Running transactions
   clock_gettime(CLOCK_REALTIME, &msr_start);
-  while (true) {
+  while (true)
+  {
     SmallBankTxType tx_type = smallbank_workgen_arr[FastRand(&seed) % 100];
-    uint64_t iter = ++tx_id_generator;  // Global atomic transaction id
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
     stat_attempted_tx_total++;
     clock_gettime(CLOCK_REALTIME, &tx_start_time);
-    switch (tx_type) {
-      case SmallBankTxType::kAmalgamate: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxAmalgamate(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case SmallBankTxType::kBalance: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxBalance(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case SmallBankTxType::kDepositChecking: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxDepositChecking(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case SmallBankTxType::kSendPayment: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxSendPayment(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case SmallBankTxType::kTransactSaving: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxTransactSaving(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      case SmallBankTxType::kWriteCheck: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxWriteCheck(smallbank_client, &seed, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-        break;
-      }
-      default:
-        printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
-        abort();
+    switch (tx_type)
+    {
+    case SmallBankTxType::kAmalgamate:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxAmalgamate(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case SmallBankTxType::kBalance:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxBalance(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case SmallBankTxType::kDepositChecking:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxDepositChecking(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case SmallBankTxType::kSendPayment:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxSendPayment(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case SmallBankTxType::kTransactSaving:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxTransactSaving(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    case SmallBankTxType::kWriteCheck:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxWriteCheck(smallbank_client, &seed, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+      break;
+    }
+    default:
+      printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
+      abort();
     }
 
     /********************************** Stat begin *****************************************/
     // Stat after one transaction finishes
-    if (tx_committed) {
+    if (tx_committed)
+    {
       clock_gettime(CLOCK_REALTIME, &tx_end_time);
       double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
       timer[stat_committed_tx_total++] = tx_usec;
     }
-    if (stat_attempted_tx_total >= ATTEMPTED_NUM) {
+    if (stat_attempted_tx_total >= ATTEMPTED_NUM)
+    {
       // A coroutine calculate the total execution time and exits
       clock_gettime(CLOCK_REALTIME, &msr_end);
       // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
@@ -307,9 +358,10 @@ void RunSmallBank(coro_yield_t& yield, coro_id_t coro_id) {
   delete txn;
 }
 
-void RunTPCC(coro_yield_t& yield, coro_id_t coro_id, int finished_num) {
+void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
+{
   // Each coroutine has a txn: Each coroutine is a coordinator
-  TXN* txn = new TXN(meta_man,
+  TXN *txn = new TXN(meta_man,
                      qp_man,
                      thread_gid,
                      coro_id,
@@ -324,61 +376,82 @@ void RunTPCC(coro_yield_t& yield, coro_id_t coro_id, int finished_num) {
   // Running transactions
   clock_gettime(CLOCK_REALTIME, &msr_start);
   last_end = msr_start;
-  while (true) {
+  while (true)
+  {
     // Guarantee that each coroutine has a different seed
     TPCCTxType tx_type = tpcc_workgen_arr[FastRand(&seed) % 100];
-    uint64_t iter = ++tx_id_generator;  // Global atomic transaction id
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
     stat_attempted_tx_total++;
     // TLOG(INFO, thread_gid) << "Thread " << thread_gid << " attemps txn " << stat_attempted_tx_total << " txn id: " << iter;
 
     clock_gettime(CLOCK_REALTIME, &tx_start_time);
-    switch (tx_type) {
-      case TPCCTxType::kDelivery: {
+    switch (tx_type)
+    {
+    case TPCCTxType::kDelivery:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxDelivery(tpcc_client, random_generator, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kNewOrder:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxNewOrder(tpcc_client, random_generator, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kOrderStatus:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxOrderStatus(tpcc_client, random_generator, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kPayment:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      tx_committed = TxPayment(tpcc_client, random_generator, yield, iter, txn);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kStockLevel:
+    {
+      do
+      {
         thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxDelivery(tpcc_client, random_generator, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-      } break;
-      case TPCCTxType::kNewOrder: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxNewOrder(tpcc_client, random_generator, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-      } break;
-      case TPCCTxType::kOrderStatus: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxOrderStatus(tpcc_client, random_generator, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-      } break;
-      case TPCCTxType::kPayment: {
-        thread_local_try_times[uint64_t(tx_type)]++;
-        tx_committed = TxPayment(tpcc_client, random_generator, yield, iter, txn);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-      } break;
-      case TPCCTxType::kStockLevel: {
-        do {
-          thread_local_try_times[uint64_t(tx_type)]++;
-          clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
 
-          tx_committed = TxStockLevel(tpcc_client, random_generator, yield, iter, txn);
-          if (!tx_committed) {
-            iter = ++tx_id_generator;
-          }
-        } while (tx_committed != true);
-        if (tx_committed) thread_local_commit_times[uint64_t(tx_type)]++;
-      } break;
-      default:
-        printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
-        abort();
+        tx_committed = TxStockLevel(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    default:
+      printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
+      abort();
     }
 
     /********************************** Stat begin *****************************************/
     // Stat after one transaction finishes
-    if (tx_committed) {
+    if (tx_committed)
+    {
       clock_gettime(CLOCK_REALTIME, &tx_end_time);
       double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
       timer[stat_committed_tx_total++] = tx_usec;
     }
 
-    if (stat_attempted_tx_total >= (ATTEMPTED_NUM - finished_num)) {
+    if (stat_attempted_tx_total >= (ATTEMPTED_NUM - finished_num))
+    {
       // A coroutine calculate the total execution time and exits
       clock_gettime(CLOCK_REALTIME, &msr_end);
       // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
@@ -390,7 +463,8 @@ void RunTPCC(coro_yield_t& yield, coro_id_t coro_id, int finished_num) {
 
     try_times[thread_local_id] = stat_attempted_tx_total;
 
-    if (to_crash[thread_local_id]) {
+    if (to_crash[thread_local_id])
+    {
       clock_gettime(CLOCK_REALTIME, &msr_end);
       // std::cerr << "Thread " << thread_gid << " crash" << std::endl;
       double msr_sec = (msr_end.tv_sec - msr_start.tv_sec) + (double)(msr_end.tv_nsec - msr_start.tv_nsec) / 1000000000;
@@ -407,7 +481,8 @@ void RunTPCC(coro_yield_t& yield, coro_id_t coro_id, int finished_num) {
 
 #if PROBE_TP
 
-    if (probe[thread_local_id]) {
+    if (probe[thread_local_id])
+    {
       // Probe tp
       double msr_sec, attemp_tput, tx_tput;
       clock_gettime(CLOCK_REALTIME, &msr_end);
@@ -432,10 +507,11 @@ void RunTPCC(coro_yield_t& yield, coro_id_t coro_id, int finished_num) {
   delete txn;
 }
 
-void RunMICRO(coro_yield_t& yield, coro_id_t coro_id) {
+void RunMICRO(coro_yield_t &yield, coro_id_t coro_id)
+{
   double total_msr_us = 0;
   // Each coroutine has a txn: Each coroutine is a coordinator
-  TXN* txn = new TXN(meta_man,
+  TXN *txn = new TXN(meta_man,
                      qp_man,
                      thread_gid,
                      coro_id,
@@ -449,21 +525,26 @@ void RunMICRO(coro_yield_t& yield, coro_id_t coro_id) {
 
   // Running transactions
   clock_gettime(CLOCK_REALTIME, &msr_start);
-  while (true) {
-    uint64_t iter = ++tx_id_generator;  // Global atomic transaction id
+  while (true)
+  {
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
     itemkey_t key;
 
-    if (is_skewed) {
+    if (is_skewed)
+    {
       // Skewed distribution
       key = (itemkey_t)(zipf_gen->next());
-    } else {
+    }
+    else
+    {
       // Uniformed distribution
       key = (itemkey_t)FastRand(&seed) & (num_keys_global - 1);
     }
 
     assert(key >= 0 && key < num_keys_global);
 
-    if (FastRand(&seed) % 100 < write_ratio) {
+    if (FastRand(&seed) % 100 < write_ratio)
+    {
       // rw
       thread_local_try_times[uint64_t(MicroTxType::kUpdateOne)]++;
       stat_attempted_tx_total++;
@@ -472,8 +553,11 @@ void RunMICRO(coro_yield_t& yield, coro_id_t coro_id) {
 
       tx_committed = TxUpdateOne(yield, iter, txn, key);
 
-      if (tx_committed) thread_local_commit_times[uint64_t(MicroTxType::kUpdateOne)]++;
-    } else {
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(MicroTxType::kUpdateOne)]++;
+    }
+    else
+    {
       // ro
       thread_local_try_times[uint64_t(MicroTxType::kReadOne)]++;
       stat_attempted_tx_total++;
@@ -482,18 +566,21 @@ void RunMICRO(coro_yield_t& yield, coro_id_t coro_id) {
 
       tx_committed = TxReadOne(yield, iter, txn, key);
 
-      if (tx_committed) thread_local_commit_times[uint64_t(MicroTxType::kReadOne)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(MicroTxType::kReadOne)]++;
     }
 
     /********************************** Stat begin *****************************************/
     // Stat after one transaction finishes
-    if (tx_committed) {
+    if (tx_committed)
+    {
       clock_gettime(CLOCK_REALTIME, &tx_end_time);
       double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
       timer[stat_committed_tx_total++] = tx_usec;
     }
 
-    if (stat_committed_tx_total >= ATTEMPTED_NUM) {
+    if (stat_committed_tx_total >= ATTEMPTED_NUM)
+    {
       // A coroutine calculate the total execution time and exits
       clock_gettime(CLOCK_REALTIME, &msr_end);
       // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
@@ -508,11 +595,145 @@ void RunMICRO(coro_yield_t& yield, coro_id_t coro_id) {
   delete txn;
 }
 
-void run_thread(thread_params* params,
-                TATP* tatp_cli,
-                SmallBank* smallbank_cli,
-                TPCC* tpcc_cli,
-                std::vector<TpProbe>* thread_tp_probe) {
+void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
+{
+  double total_msr_us = 0;
+  // Each coroutine has a txn: Each coroutine is a coordinator
+  TXN *txn = new TXN(meta_man,
+                     qp_man,
+                     thread_gid,
+                     coro_id,
+                     coro_sched,
+                     rdma_buffer_allocator,
+                     delta_offset_allocator,
+                     locked_key_table,
+                     addr_cache);
+  struct timespec tx_start_time, tx_end_time;
+  bool tx_committed = false;
+
+  // Running transactions
+  clock_gettime(CLOCK_REALTIME, &msr_start);
+  while (true)
+  {
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
+    itemkey_t key[10];
+    bool update[10];
+
+    int readOnly = FastRand(&seed) % 100;
+    uint64_t partitionId = FastRand(&seed) % partition_num;
+    // int crossPartitionPart = FastRand(&seed) % crossPartitionPartNum + 1;
+
+    // a query operates 10 keys
+    for (auto i = 0u; i < 10; i++)
+    {
+
+      if (readOnly <= readOnlyTransaction)
+      {
+        update[i] = false;
+      }
+      else
+      {
+        int readOrWrite = FastRand(&seed) % 100;
+        if (readOrWrite <= readWriteRatio)
+        {
+          update[i] = false;
+        }
+        else
+        {
+          update[i] = true;
+        }
+      }
+      itemkey_t pre_key;
+
+      if (is_skewed)
+      {
+        // Skewed distribution
+        pre_key = (itemkey_t)(zipf_gen->next());
+      }
+      else
+      {
+        // Uniformed distribution
+        pre_key = (itemkey_t)FastRand(&seed) & (num_keys_partition - 1);
+        // key = (itemkey_t)FastRand(&seed) & (num_keys_global - 1);
+      }
+
+      // Get final key
+      key[i] = partitionId * num_keys_partition + pre_key;
+
+      assert(key[i] >= 0 && key[i] < num_keys_global);
+    }
+
+    thread_local_try_times[uint64_t(YCSBTxType::RMW)]++;
+    stat_attempted_tx_total++;
+
+    clock_gettime(CLOCK_REALTIME, &tx_start_time);
+    tx_committed = TxRMW(yield, iter, txn, key, update);
+
+    // tx_committed = TxUpdateOne(yield, iter, txn, key);
+
+    if (tx_committed)
+      thread_local_commit_times[uint64_t(YCSBTxType::RMW)]++;
+
+    /*
+    if (FastRand(&seed) % 100 < write_ratio)
+    {
+      // rw
+      thread_local_try_times[uint64_t(MicroTxType::kUpdateOne)]++;
+      stat_attempted_tx_total++;
+
+      clock_gettime(CLOCK_REALTIME, &tx_start_time);
+
+      tx_committed = TxUpdateOne(yield, iter, txn, key);
+
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(MicroTxType::kUpdateOne)]++;
+    }
+    else
+    {
+      // ro
+      thread_local_try_times[uint64_t(MicroTxType::kReadOne)]++;
+      stat_attempted_tx_total++;
+
+      clock_gettime(CLOCK_REALTIME, &tx_start_time);
+
+      tx_committed = TxReadOne(yield, iter, txn, key);
+
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(MicroTxType::kReadOne)]++;
+    }
+    */
+
+    /********************************** Stat begin *****************************************/
+    // Stat after one transaction finishes
+    if (tx_committed)
+    {
+      clock_gettime(CLOCK_REALTIME, &tx_end_time);
+      double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
+      timer[stat_committed_tx_total++] = tx_usec;
+    }
+
+    if (stat_committed_tx_total >= ATTEMPTED_NUM)
+    {
+      // A coroutine calculate the total execution time and exits
+      clock_gettime(CLOCK_REALTIME, &msr_end);
+      // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
+      double msr_sec = (msr_end.tv_sec - msr_start.tv_sec) + (double)(msr_end.tv_nsec - msr_start.tv_nsec) / 1000000000;
+      RecordTpLat(msr_sec);
+      break;
+    }
+  }
+
+  /********************************** Stat end *****************************************/
+
+  delete txn;
+}
+
+void run_thread(thread_params *params,
+                TATP *tatp_cli,
+                SmallBank *smallbank_cli,
+                TPCC *tpcc_cli,
+                std::vector<TpProbe> *thread_tp_probe)
+{
   auto bench_name = params->bench_name;
   std::string config_filepath = "../../../config/" + bench_name + "_config.json";
 
@@ -520,24 +741,37 @@ void run_thread(thread_params* params,
   auto conf = json_config.get(bench_name);
   ATTEMPTED_NUM = conf.get("attempted_num").get_uint64();
 
-  if (bench_name == "tatp") {
+  if (bench_name == "tatp")
+  {
     tatp_client = tatp_cli;
     tatp_workgen_arr = tatp_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[TATP_TX_TYPES]();
     thread_local_commit_times = new uint64_t[TATP_TX_TYPES]();
-  } else if (bench_name == "smallbank") {
+  }
+  else if (bench_name == "smallbank")
+  {
     smallbank_client = smallbank_cli;
     smallbank_workgen_arr = smallbank_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[SmallBank_TX_TYPES]();
     thread_local_commit_times = new uint64_t[SmallBank_TX_TYPES]();
-  } else if (bench_name == "tpcc") {
+  }
+  else if (bench_name == "tpcc")
+  {
     tpcc_client = tpcc_cli;
     tpcc_workgen_arr = tpcc_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[TPCC_TX_TYPES]();
     thread_local_commit_times = new uint64_t[TPCC_TX_TYPES]();
-  } else if (bench_name == "micro") {
+  }
+  else if (bench_name == "micro")
+  {
     thread_local_try_times = new uint64_t[MICRO_TX_TYPES]();
     thread_local_commit_times = new uint64_t[MICRO_TX_TYPES]();
+  }
+  else if (bench_name == "ycsb")
+  {
+    // CreateWorkgenArray() is for generating diff kinds of txns while ycsb has only one
+    thread_local_try_times = new uint64_t[YCSB_TX_TYPES]();
+    thread_local_commit_times = new uint64_t[YCSB_TX_TYPES]();
   }
 
   thread_gid = params->thread_global_id;
@@ -556,15 +790,16 @@ void run_thread(thread_params* params,
 
   delta_offset_allocator = new RemoteDeltaOffsetAllocator(thread_delta_region);
 
-  char* p = (char*)(params->global_locked_key_table);
+  char *p = (char *)(params->global_locked_key_table);
   p += sizeof(LockedKeyTable) * thread_local_id * coro_num;
-  locked_key_table = (LockedKeyTable*)p;
+  locked_key_table = (LockedKeyTable *)p;
   tp_probe_list = thread_tp_probe;
 
   timer = new double[ATTEMPTED_NUM]();
 
   // Initialize Zipf generator for MICRO benchmark
-  if (bench_name == "micro") {
+  if (bench_name == "micro")
+  {
     uint64_t zipf_seed = 2 * thread_gid * GetCPUCycle();
     uint64_t zipf_seed_mask = (uint64_t(1) << 48) - 1;
     std::string micro_config_filepath = "../../../config/micro_config.json";
@@ -578,6 +813,31 @@ void run_thread(thread_params* params,
     zipf_gen = new ZipfGen(num_keys_global, zipf_theta, zipf_seed & zipf_seed_mask);
   }
 
+  // Initialize Zipf generator for YCSB benchmark
+  if (bench_name == "ycsb")
+  {
+    uint64_t zipf_seed = 2 * thread_gid * GetCPUCycle();
+    uint64_t zipf_seed_mask = (uint64_t(1) << 48) - 1;
+    std::string ycsb_config_filepath = "../../../config/ycsb_config.json";
+    auto json_config = JsonConfig::load_file(ycsb_config_filepath);
+    auto ycsb_conf = json_config.get("ycsb");
+    // It is for generating key in a single partition
+    // We can use partitionID to get the final key
+    // num_keys_global = ycsb_conf.get("partition_num").get_int64() * ycsb_conf.get("keysPerPartition").get_int64();
+    num_keys_global = ycsb_conf.get("partition_num").get_int64() * ycsb_conf.get("keysPerPartition").get_int64();
+    num_keys_partition = ycsb_conf.get("keysPerPartition").get_int64();
+    partition_num = ycsb_conf.get("partition_num").get_int64();
+    auto zipf_theta = ycsb_conf.get("zipf_theta").get_double();
+    is_skewed = ycsb_conf.get("is_skewed").get_bool();
+    readWriteRatio = ycsb_conf.get("readWriteRatio").get_uint64();
+    readOnlyTransaction = ycsb_conf.get("readOnlyTransaction").get_uint64();
+    crossPartitionProbability = ycsb_conf.get("crossPartitionProbability").get_uint64();
+    // data_set_size = micro_conf.get("data_set_size").get_uint64();
+
+    zipf_gen = new ZipfGen(num_keys_partition, zipf_theta, zipf_seed & zipf_seed_mask);
+    // zipf_gen = new ZipfGen(num_keys_global, zipf_theta, zipf_seed & zipf_seed_mask);
+  }
+
   // Init coroutine random gens specialized for TPCC benchmark
   random_generator = new FastRandom[coro_num];
 
@@ -585,22 +845,37 @@ void run_thread(thread_params* params,
   seed = 0xdeadbeef + thread_gid;
 
   // Init coroutines
-  for (coro_id_t coro_i = 0; coro_i < coro_num; coro_i++) {
+  for (coro_id_t coro_i = 0; coro_i < coro_num; coro_i++)
+  {
     uint64_t coro_seed = static_cast<uint64_t>((static_cast<uint64_t>(thread_gid) << 32) | static_cast<uint64_t>(coro_i));
     random_generator[coro_i].SetSeed(coro_seed);
     coro_sched->coro_array[coro_i].coro_id = coro_i;
     // Bind workload to coroutine
-    if (coro_i == POLL_ROUTINE_ID) {
+    if (coro_i == POLL_ROUTINE_ID)
+    {
       coro_sched->coro_array[coro_i].func = coro_call_t(bind(Poll, _1));
-    } else {
-      if (bench_name == "tatp") {
+    }
+    else
+    {
+      if (bench_name == "tatp")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunTATP, _1, coro_i));
-      } else if (bench_name == "smallbank") {
+      }
+      else if (bench_name == "smallbank")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunSmallBank, _1, coro_i));
-      } else if (bench_name == "tpcc") {
+      }
+      else if (bench_name == "tpcc")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunTPCC, _1, coro_i, 0));
-      } else if (bench_name == "micro") {
+      }
+      else if (bench_name == "micro")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunMICRO, _1, coro_i));
+      }
+      else if (bench_name == "ycsb")
+      {
+        coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunYCSB, _1, coro_i));
       }
     }
   }
@@ -614,8 +889,9 @@ void run_thread(thread_params* params,
 
   // Sync qp connections in one compute node before running transactions
   connected_t_num += 1;
-  while (connected_t_num != params->running_tnum) {
-    usleep(100);  // wait for all threads connections
+  while (connected_t_num != params->running_tnum)
+  {
+    usleep(100); // wait for all threads connections
   }
 
   // Start the first coroutine
@@ -629,11 +905,16 @@ void run_thread(thread_params* params,
 
   // Clean
   delete[] timer;
-  if (tatp_workgen_arr) delete[] tatp_workgen_arr;
-  if (smallbank_workgen_arr) delete[] smallbank_workgen_arr;
-  if (tpcc_workgen_arr) delete[] tpcc_workgen_arr;
-  if (random_generator) delete[] random_generator;
-  if (zipf_gen) delete zipf_gen;
+  if (tatp_workgen_arr)
+    delete[] tatp_workgen_arr;
+  if (smallbank_workgen_arr)
+    delete[] smallbank_workgen_arr;
+  if (tpcc_workgen_arr)
+    delete[] tpcc_workgen_arr;
+  if (random_generator)
+    delete[] random_generator;
+  if (zipf_gen)
+    delete zipf_gen;
   delete coro_sched;
   delete thread_local_try_times;
   delete thread_local_commit_times;
@@ -641,13 +922,14 @@ void run_thread(thread_params* params,
   // RDMA_LOG(INFO) << "Thread " << thread_gid << " finishes";
 }
 
-void recovery(thread_params* params,
-              TATP* tatp_cli,
-              SmallBank* smallbank_cli,
-              TPCC* tpcc_cli,
+void recovery(thread_params *params,
+              TATP *tatp_cli,
+              SmallBank *smallbank_cli,
+              TPCC *tpcc_cli,
               int finished_num,
-              std::vector<TpProbe>* thread_tp_probe,
-              t_id_t crasher) {
+              std::vector<TpProbe> *thread_tp_probe,
+              t_id_t crasher)
+{
   auto bench_name = params->bench_name;
   std::string config_filepath = "../../../config/" + bench_name + "_config.json";
 
@@ -655,24 +937,36 @@ void recovery(thread_params* params,
   auto conf = json_config.get(bench_name);
   ATTEMPTED_NUM = conf.get("attempted_num").get_uint64();
 
-  if (bench_name == "tatp") {
+  if (bench_name == "tatp")
+  {
     tatp_client = tatp_cli;
     tatp_workgen_arr = tatp_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[TATP_TX_TYPES]();
     thread_local_commit_times = new uint64_t[TATP_TX_TYPES]();
-  } else if (bench_name == "smallbank") {
+  }
+  else if (bench_name == "smallbank")
+  {
     smallbank_client = smallbank_cli;
     smallbank_workgen_arr = smallbank_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[SmallBank_TX_TYPES]();
     thread_local_commit_times = new uint64_t[SmallBank_TX_TYPES]();
-  } else if (bench_name == "tpcc") {
+  }
+  else if (bench_name == "tpcc")
+  {
     tpcc_client = tpcc_cli;
     tpcc_workgen_arr = tpcc_client->CreateWorkgenArray();
     thread_local_try_times = new uint64_t[TPCC_TX_TYPES]();
     thread_local_commit_times = new uint64_t[TPCC_TX_TYPES]();
-  } else if (bench_name == "micro") {
+  }
+  else if (bench_name == "micro")
+  {
     thread_local_try_times = new uint64_t[MICRO_TX_TYPES]();
     thread_local_commit_times = new uint64_t[MICRO_TX_TYPES]();
+  }
+  else if (bench_name == "ycsb")
+  {
+    thread_local_try_times = new uint64_t[YCSB_TX_TYPES]();
+    thread_local_commit_times = new uint64_t[YCSB_TX_TYPES]();
   }
 
   thread_gid = params->thread_global_id;
@@ -691,15 +985,16 @@ void recovery(thread_params* params,
 
   delta_offset_allocator = new RemoteDeltaOffsetAllocator(thread_delta_region);
 
-  char* p = (char*)(params->global_locked_key_table);
+  char *p = (char *)(params->global_locked_key_table);
   p += sizeof(LockedKeyTable) * thread_local_id * coro_num;
-  locked_key_table = (LockedKeyTable*)p;
+  locked_key_table = (LockedKeyTable *)p;
   tp_probe_list = thread_tp_probe;
 
   timer = new double[ATTEMPTED_NUM]();
 
   // Initialize Zipf generator for MICRO benchmark
-  if (bench_name == "micro") {
+  if (bench_name == "micro")
+  {
     uint64_t zipf_seed = 2 * thread_gid * GetCPUCycle();
     uint64_t zipf_seed_mask = (uint64_t(1) << 48) - 1;
     std::string micro_config_filepath = "../../../config/micro_config.json";
@@ -713,6 +1008,31 @@ void recovery(thread_params* params,
     zipf_gen = new ZipfGen(num_keys_global, zipf_theta, zipf_seed & zipf_seed_mask);
   }
 
+  // Initialize Zipf generator for YCSB benchmark
+  if (bench_name == "ycsb")
+  {
+    uint64_t zipf_seed = 2 * thread_gid * GetCPUCycle();
+    uint64_t zipf_seed_mask = (uint64_t(1) << 48) - 1;
+    std::string ycsb_config_filepath = "../../../config/ycsb_config.json";
+    auto json_config = JsonConfig::load_file(ycsb_config_filepath);
+    auto ycsb_conf = json_config.get("ycsb");
+    // It is for generating key in a single partition
+    // We can use partitionID to get the final key
+    // num_keys_global = ycsb_conf.get("partition_num").get_int64() * ycsb_conf.get("keysPerPartition").get_int64();
+    num_keys_global = ycsb_conf.get("partition_num").get_int64() * ycsb_conf.get("keysPerPartition").get_int64();
+    num_keys_partition = ycsb_conf.get("keysPerPartition").get_int64();
+    partition_num = ycsb_conf.get("partition_num").get_int64();
+    auto zipf_theta = ycsb_conf.get("zipf_theta").get_double();
+    is_skewed = ycsb_conf.get("is_skewed").get_bool();
+    readWriteRatio = ycsb_conf.get("readWriteRatio").get_uint64();
+    readOnlyTransaction = ycsb_conf.get("readOnlyTransaction").get_uint64();
+    crossPartitionProbability = ycsb_conf.get("crossPartitionProbability").get_uint64();
+    // data_set_size = micro_conf.get("data_set_size").get_uint64();
+
+    zipf_gen = new ZipfGen(num_keys_partition, zipf_theta, zipf_seed & zipf_seed_mask);
+    // zipf_gen = new ZipfGen(num_keys_global, zipf_theta, zipf_seed & zipf_seed_mask);
+  }
+
   // Init coroutine random gens specialized for TPCC benchmark
   random_generator = new FastRandom[coro_num];
 
@@ -720,22 +1040,37 @@ void recovery(thread_params* params,
   seed = 0xdeadbeef + thread_gid;
 
   // Init coroutines
-  for (coro_id_t coro_i = 0; coro_i < coro_num; coro_i++) {
+  for (coro_id_t coro_i = 0; coro_i < coro_num; coro_i++)
+  {
     uint64_t coro_seed = static_cast<uint64_t>((static_cast<uint64_t>(thread_gid) << 32) | static_cast<uint64_t>(coro_i));
     random_generator[coro_i].SetSeed(coro_seed);
     coro_sched->coro_array[coro_i].coro_id = coro_i;
     // Bind workload to coroutine
-    if (coro_i == POLL_ROUTINE_ID) {
+    if (coro_i == POLL_ROUTINE_ID)
+    {
       coro_sched->coro_array[coro_i].func = coro_call_t(bind(Poll, _1));
-    } else {
-      if (bench_name == "tatp") {
+    }
+    else
+    {
+      if (bench_name == "tatp")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunTATP, _1, coro_i));
-      } else if (bench_name == "smallbank") {
+      }
+      else if (bench_name == "smallbank")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunSmallBank, _1, coro_i));
-      } else if (bench_name == "tpcc") {
+      }
+      else if (bench_name == "tpcc")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunTPCC, _1, coro_i, 0));
-      } else if (bench_name == "micro") {
+      }
+      else if (bench_name == "micro")
+      {
         coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunMICRO, _1, coro_i));
+      }
+      else if (bench_name == "ycsb")
+      {
+        coro_sched->coro_array[coro_i].func = coro_call_t(bind(RunYCSB, _1, coro_i));
       }
     }
   }
@@ -752,16 +1087,18 @@ void recovery(thread_params* params,
 
   // Sync qp connections in one compute node before running transactions
   connected_recovery_t_num += 1;
-  while (connected_recovery_t_num != params->running_tnum) {
-    usleep(100);  // wait for all threads connections
+  while (connected_recovery_t_num != params->running_tnum)
+  {
+    usleep(100); // wait for all threads connections
   }
 
 #if HAVE_COORD_CRASH
-  if (thread_local_id == 30) {
+  if (thread_local_id == 30)
+  {
     // Print time
     time_t tt;
     struct timeval tv_;
-    struct tm* timeinfo;
+    struct tm *timeinfo;
     long tv_ms = 0, tv_us = 0;
     char output[20];
     time(&tt);
@@ -774,31 +1111,35 @@ void recovery(thread_params* params,
   }
 #endif
 
-  char* t = (char*)(params->global_locked_key_table);
+  char *t = (char *)(params->global_locked_key_table);
   t += sizeof(LockedKeyTable) * crasher * coro_num;
-  LockedKeyTable* target = (LockedKeyTable*)t;
+  LockedKeyTable *target = (LockedKeyTable *)t;
 
   // Release locks
-  for (int i = 0; i < coro_num; i++) {
+  for (int i = 0; i < coro_num; i++)
+  {
     int num_entry = target[i].num_entry;
-    if (num_entry) {
+    if (num_entry)
+    {
       // TLOG(INFO, thread_gid) << "coro: " << i << " op_log_size (B): " << sizeof(tx_id_t) + sizeof(num_entry) + num_entry * sizeof(LockedKeyEntry);
-      for (int j = 0; j < num_entry; j++) {
-        char* cas_buf = rdma_buffer_allocator->Alloc(sizeof(lock_t));
-        *(lock_t*)cas_buf = 0;
+      for (int j = 0; j < num_entry; j++)
+      {
+        char *cas_buf = rdma_buffer_allocator->Alloc(sizeof(lock_t));
+        *(lock_t *)cas_buf = 0;
 
-        auto* qp = qp_man->GetRemoteDataQPWithNodeID(target[i].entries[j].remote_node);
+        auto *qp = qp_man->GetRemoteDataQPWithNodeID(target[i].entries[j].remote_node);
         qp->post_cas(cas_buf, target[i].entries[j].remote_off, target[i].tx_id, 0, 0);
       }
     }
   }
 
 #if HAVE_COORD_CRASH
-  if (thread_local_id == 30) {
+  if (thread_local_id == 30)
+  {
     // Print time
     time_t tt;
     struct timeval tv_;
-    struct tm* timeinfo;
+    struct tm *timeinfo;
     long tv_ms = 0, tv_us = 0;
     char output[20];
     time(&tt);
@@ -821,11 +1162,16 @@ void recovery(thread_params* params,
 
   // Clean
   delete[] timer;
-  if (tatp_workgen_arr) delete[] tatp_workgen_arr;
-  if (smallbank_workgen_arr) delete[] smallbank_workgen_arr;
-  if (tpcc_workgen_arr) delete[] tpcc_workgen_arr;
-  if (random_generator) delete[] random_generator;
-  if (zipf_gen) delete zipf_gen;
+  if (tatp_workgen_arr)
+    delete[] tatp_workgen_arr;
+  if (smallbank_workgen_arr)
+    delete[] smallbank_workgen_arr;
+  if (tpcc_workgen_arr)
+    delete[] tpcc_workgen_arr;
+  if (random_generator)
+    delete[] random_generator;
+  if (zipf_gen)
+    delete zipf_gen;
   delete coro_sched;
   delete thread_local_try_times;
   delete thread_local_commit_times;

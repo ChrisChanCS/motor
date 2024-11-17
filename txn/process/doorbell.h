@@ -16,9 +16,11 @@ static const int MAX_DOORBELL_LEN = 124;
 // These requests are executed within one round trip
 // Target: improve performance
 
-class LockReadBatch {
- public:
-  LockReadBatch() {
+class LockReadBatch
+{
+public:
+  LockReadBatch()
+  {
     // The key of doorbell: set the pointer to link requests
 
     // lock cvt
@@ -36,7 +38,8 @@ class LockReadBatch {
 
   // SetLockReq and SetReadReq are a doorbelled group
   // First lock, then read
-  void SetLockReq(char* local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap) {
+  void SetLockReq(char *local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap)
+  {
     sr[0].opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
     sr[0].wr.atomic.remote_addr = remote_off;
     sr[0].wr.atomic.compare_add = compare;
@@ -45,7 +48,8 @@ class LockReadBatch {
     sge[0].addr = (uint64_t)local_addr;
   }
 
-  void SetReadReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
@@ -54,7 +58,8 @@ class LockReadBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // sr[0] must be an atomic operation
     sr[0].wr.atomic.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.atomic.rkey = qp->remote_mr_.key;
@@ -67,17 +72,19 @@ class LockReadBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 1);
   }
 
- private:
+private:
   struct ibv_send_wr sr[2];
 
   struct ibv_sge sge[2];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class LockReadTwoBatch {
- public:
-  LockReadTwoBatch() {
+class LockReadTwoBatch
+{
+public:
+  LockReadTwoBatch()
+  {
     // lock cvt
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -99,7 +106,8 @@ class LockReadTwoBatch {
 
   // SetLockReq and SetReadReq are a doorbelled group
   // First lock, then read
-  void SetLockReq(char* local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap) {
+  void SetLockReq(char *local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap)
+  {
     sr[0].opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
     sr[0].wr.atomic.remote_addr = remote_off;
     sr[0].wr.atomic.compare_add = compare;
@@ -108,7 +116,8 @@ class LockReadTwoBatch {
     sge[0].addr = (uint64_t)local_addr;
   }
 
-  void SetReadCVTReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadCVTReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
@@ -116,7 +125,8 @@ class LockReadTwoBatch {
     sge[1].length = size;
   }
 
-  void SetReadValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[2].opcode = IBV_WR_RDMA_READ;
     sr[2].wr.rdma.remote_addr = remote_off;
@@ -125,7 +135,8 @@ class LockReadTwoBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // sr[0] must be an atomic operation
     sr[0].wr.atomic.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.atomic.rkey = qp->remote_mr_.key;
@@ -142,17 +153,19 @@ class LockReadTwoBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 2);
   }
 
- private:
+private:
   struct ibv_send_wr sr[3];
 
   struct ibv_sge sge[3];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class LockReadThreeBatch {
- public:
-  LockReadThreeBatch(size_t num_attr) : num_attr_read(num_attr) {
+class LockReadThreeBatch
+{
+public:
+  LockReadThreeBatch(size_t num_attr) : num_attr_read(num_attr)
+  {
     // Lock
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -172,21 +185,26 @@ class LockReadThreeBatch {
     sr[2].next = &sr[3];
 
     // Read attributes
-    for (size_t i = prev_cnt; i < (num_attr_read + prev_cnt); i++) {
+    for (size_t i = prev_cnt; i < (num_attr_read + prev_cnt); i++)
+    {
       sr[i].num_sge = 1;
       sr[i].sg_list = &sge[i];
 
-      if (i == num_attr_read + prev_cnt - 1) {
+      if (i == num_attr_read + prev_cnt - 1)
+      {
         sr[i].send_flags = IBV_SEND_SIGNALED;
         sr[i].next = NULL;
-      } else {
+      }
+      else
+      {
         sr[i].send_flags = 0;
         sr[i].next = &sr[i + 1];
       }
     }
   }
 
-  void SetLockReq(char* local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap) {
+  void SetLockReq(char *local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap)
+  {
     sr[0].opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
     sr[0].wr.atomic.remote_addr = remote_off;
     sr[0].wr.atomic.compare_add = compare;
@@ -195,7 +213,8 @@ class LockReadThreeBatch {
     sge[0].addr = (uint64_t)local_addr;
   }
 
-  void SetReadCVTReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadCVTReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
@@ -203,7 +222,8 @@ class LockReadThreeBatch {
     sge[1].length = size;
   }
 
-  void SetReadValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[2].opcode = IBV_WR_RDMA_READ;
     sr[2].wr.rdma.remote_addr = remote_off;
@@ -211,9 +231,11 @@ class LockReadThreeBatch {
     sge[2].length = size;
   }
 
-  void SetReadAttrReq(std::vector<AttrRead>& attr_read_list) {
+  void SetReadAttrReq(std::vector<AttrRead> &attr_read_list)
+  {
     assert(num_attr_read == attr_read_list.size());
-    for (size_t i = prev_cnt; i < (num_attr_read + prev_cnt); i++) {
+    for (size_t i = prev_cnt; i < (num_attr_read + prev_cnt); i++)
+    {
       sr[i].opcode = IBV_WR_RDMA_READ;
       sr[i].wr.rdma.remote_addr = attr_read_list[i - prev_cnt].remote_attr_off;
       sge[i].addr = (uint64_t)attr_read_list[i - prev_cnt].local_attr_buf;
@@ -222,13 +244,15 @@ class LockReadThreeBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // sr[0] must be an atomic operation
     sr[0].wr.atomic.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.atomic.rkey = qp->remote_mr_.key;
     sge[0].lkey = qp->local_mr_.key;
 
-    for (size_t i = 1; i < (num_attr_read + prev_cnt); i++) {
+    for (size_t i = 1; i < (num_attr_read + prev_cnt); i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -237,21 +261,23 @@ class LockReadThreeBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 2 + num_attr_read);
   }
 
- private:
+private:
   const static int prev_cnt = 3;
 
   struct ibv_send_wr sr[MAX_ATTRIBUTE_NUM_PER_TABLE + prev_cnt];
 
   struct ibv_sge sge[MAX_ATTRIBUTE_NUM_PER_TABLE + prev_cnt];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 
   size_t num_attr_read;
 };
 
-class DeleteRead {
- public:
-  DeleteRead() {
+class DeleteRead
+{
+public:
+  DeleteRead()
+  {
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
     sr[0].send_flags = 0;
@@ -263,21 +289,24 @@ class DeleteRead {
     sr[1].next = NULL;
   }
 
-  void SetReadValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_READ;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
     sge[0].length = size;
   }
 
-  void SetReadAttrReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadAttrReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
     sge[1].length = size;
   }
 
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     sr[0].wr.rdma.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.rdma.rkey = qp->remote_mr_.key;
     sge[0].lkey = qp->local_mr_.key;
@@ -289,17 +318,19 @@ class DeleteRead {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 1);
   }
 
- private:
+private:
   struct ibv_send_wr sr[2];
 
   struct ibv_sge sge[2];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class DeleteLock {
- public:
-  DeleteLock() {
+class DeleteLock
+{
+public:
+  DeleteLock()
+  {
     // Lock
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -313,7 +344,8 @@ class DeleteLock {
     sr[1].next = NULL;
   }
 
-  void SetLockReq(char* local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap) {
+  void SetLockReq(char *local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap)
+  {
     sr[0].opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
     sr[0].wr.atomic.remote_addr = remote_off;
     sr[0].wr.atomic.compare_add = compare;
@@ -322,7 +354,8 @@ class DeleteLock {
     sge[0].addr = (uint64_t)local_addr;
   }
 
-  void SetReadCVTReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadCVTReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
@@ -331,7 +364,8 @@ class DeleteLock {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // sr[0] must be an atomic operation
     sr[0].wr.atomic.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.atomic.rkey = qp->remote_mr_.key;
@@ -344,17 +378,19 @@ class DeleteLock {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 1);
   }
 
- private:
+private:
   struct ibv_send_wr sr[2];
 
   struct ibv_sge sge[2];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class DeleteLockRead {
- public:
-  DeleteLockRead() {
+class DeleteLockRead
+{
+public:
+  DeleteLockRead()
+  {
     // Lock
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -380,7 +416,8 @@ class DeleteLockRead {
     sr[3].next = NULL;
   }
 
-  void SetLockReq(char* local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap) {
+  void SetLockReq(char *local_addr, uint64_t remote_off, uint64_t compare, uint64_t swap)
+  {
     sr[0].opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
     sr[0].wr.atomic.remote_addr = remote_off;
     sr[0].wr.atomic.compare_add = compare;
@@ -389,7 +426,8 @@ class DeleteLockRead {
     sge[0].addr = (uint64_t)local_addr;
   }
 
-  void SetReadCVTReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadCVTReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[1].opcode = IBV_WR_RDMA_READ;
     sr[1].wr.rdma.remote_addr = remote_off;
@@ -397,7 +435,8 @@ class DeleteLockRead {
     sge[1].length = size;
   }
 
-  void SetReadValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[2].opcode = IBV_WR_RDMA_READ;
     sr[2].wr.rdma.remote_addr = remote_off;
@@ -405,7 +444,8 @@ class DeleteLockRead {
     sge[2].length = size;
   }
 
-  void SetReadAttrReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadAttrReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     // Read cannot set send_flags IBV_SEND_INLINE
     sr[3].opcode = IBV_WR_RDMA_READ;
     sr[3].wr.rdma.remote_addr = remote_off;
@@ -414,13 +454,15 @@ class DeleteLockRead {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // sr[0] must be an atomic operation
     sr[0].wr.atomic.remote_addr += qp->remote_mr_.buf;
     sr[0].wr.atomic.rkey = qp->remote_mr_.key;
     sge[0].lkey = qp->local_mr_.key;
 
-    for (size_t i = 1; i < 4; i++) {
+    for (size_t i = 1; i < 4; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -429,17 +471,19 @@ class DeleteLockRead {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 3);
   }
 
- private:
+private:
   struct ibv_send_wr sr[4];
 
   struct ibv_sge sge[4];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class ReadValueAttrBatch {
- public:
-  ReadValueAttrBatch(size_t num_attr) : num_attr_read(num_attr) {
+class ReadValueAttrBatch
+{
+public:
+  ReadValueAttrBatch(size_t num_attr) : num_attr_read(num_attr)
+  {
     assert(num_attr >= 1);
 
     // Read value
@@ -449,30 +493,37 @@ class ReadValueAttrBatch {
     sr[0].next = &sr[1];
 
     // Read attributes
-    for (size_t i = 1; i < (num_attr_read + 1); i++) {
+    for (size_t i = 1; i < (num_attr_read + 1); i++)
+    {
       sr[i].num_sge = 1;
       sr[i].sg_list = &sge[i];
 
-      if (i == num_attr_read) {
+      if (i == num_attr_read)
+      {
         sr[i].send_flags = IBV_SEND_SIGNALED;
         sr[i].next = NULL;
-      } else {
+      }
+      else
+      {
         sr[i].send_flags = 0;
         sr[i].next = &sr[i + 1];
       }
     }
   }
 
-  void SetReadValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetReadValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_READ;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
     sge[0].length = size;
   }
 
-  void SetReadAttrReq(std::vector<AttrRead>& attr_read_list) {
+  void SetReadAttrReq(std::vector<AttrRead> &attr_read_list)
+  {
     assert(num_attr_read == attr_read_list.size());
-    for (size_t i = 1; i < (num_attr_read + 1); i++) {
+    for (size_t i = 1; i < (num_attr_read + 1); i++)
+    {
       sr[i].opcode = IBV_WR_RDMA_READ;
       sr[i].wr.rdma.remote_addr = attr_read_list[i - 1].remote_attr_off;
       sge[i].addr = (uint64_t)attr_read_list[i - 1].local_attr_buf;
@@ -480,9 +531,11 @@ class ReadValueAttrBatch {
     }
   }
 
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
     // 1+num_attr_read reads
-    for (size_t i = 0; i < (num_attr_read + 1); i++) {
+    for (size_t i = 0; i < (num_attr_read + 1); i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -490,19 +543,21 @@ class ReadValueAttrBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, num_attr_read);
   }
 
- private:
+private:
   struct ibv_send_wr sr[MAX_ATTRIBUTE_NUM_PER_TABLE + 1];
 
   struct ibv_sge sge[MAX_ATTRIBUTE_NUM_PER_TABLE + 1];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 
   size_t num_attr_read;
 };
 
-class DeleteNoFVBatch {
- public:
-  DeleteNoFVBatch() {
+class DeleteNoFVBatch
+{
+public:
+  DeleteNoFVBatch()
+  {
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
     sr[0].send_flags = 0;
@@ -514,7 +569,8 @@ class DeleteNoFVBatch {
     sr[1].next = NULL;
   }
 
-  void SetInvalidReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetInvalidReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_WRITE;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
@@ -522,7 +578,8 @@ class DeleteNoFVBatch {
     sr[0].send_flags |= IBV_SEND_INLINE;
   }
 
-  void UnlockReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void UnlockReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_WRITE;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
@@ -531,8 +588,10 @@ class DeleteNoFVBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
-    for (int i = 0; i < 2; i++) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
+    for (int i = 0; i < 2; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -541,17 +600,19 @@ class DeleteNoFVBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 1);
   }
 
- private:
+private:
   struct ibv_send_wr sr[2];
 
   struct ibv_sge sge[2];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class DeleteBatch {
- public:
-  DeleteBatch() {
+class DeleteBatch
+{
+public:
+  DeleteBatch()
+  {
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
     sr[0].send_flags = 0;
@@ -568,7 +629,8 @@ class DeleteBatch {
     sr[2].next = NULL;
   }
 
-  void SetInvalidReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetInvalidReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_WRITE;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
@@ -576,17 +638,20 @@ class DeleteBatch {
     sr[0].send_flags |= IBV_SEND_INLINE;
   }
 
-  void SetValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_WRITE;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
     sge[1].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[1].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void UnlockReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void UnlockReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[2].opcode = IBV_WR_RDMA_WRITE;
     sr[2].wr.rdma.remote_addr = remote_off;
     sge[2].addr = (uint64_t)local_addr;
@@ -595,8 +660,10 @@ class DeleteBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
-    for (int i = 0; i < 3; i++) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
+    for (int i = 0; i < 3; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -605,17 +672,19 @@ class DeleteBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 2);
   }
 
- private:
+private:
   struct ibv_send_wr sr[3];
 
   struct ibv_sge sge[3];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class UpdateBatch {
- public:
-  UpdateBatch() {
+class UpdateBatch
+{
+public:
+  UpdateBatch()
+  {
     // value, delta, vcell, unlock
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -638,37 +707,44 @@ class UpdateBatch {
     sr[3].next = NULL;
   }
 
-  void SetValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_WRITE;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
     sge[0].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[0].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void SetDeltaReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetDeltaReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_WRITE;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
     sge[1].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[1].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void SetVCellOrCVTReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetVCellOrCVTReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[2].opcode = IBV_WR_RDMA_WRITE;
     sr[2].wr.rdma.remote_addr = remote_off;
     sge[2].addr = (uint64_t)local_addr;
     sge[2].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[2].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void UnlockReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void UnlockReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[3].opcode = IBV_WR_RDMA_WRITE;
     sr[3].wr.rdma.remote_addr = remote_off;
     sge[3].addr = (uint64_t)local_addr;
@@ -677,8 +753,10 @@ class UpdateBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
-    for (int i = 0; i < 4; i++) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
+    for (int i = 0; i < 4; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -687,17 +765,19 @@ class UpdateBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 3);
   }
 
- private:
+private:
   struct ibv_send_wr sr[4];
 
   struct ibv_sge sge[4];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class UpdateBatchAttrAddr {
- public:
-  UpdateBatchAttrAddr() {
+class UpdateBatchAttrAddr
+{
+public:
+  UpdateBatchAttrAddr()
+  {
     // value, delta, vcell, attr_addr, unlock
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -725,27 +805,32 @@ class UpdateBatchAttrAddr {
     sr[4].next = NULL;
   }
 
-  void SetValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_WRITE;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
     sge[0].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[0].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void SetDeltaReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetDeltaReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_WRITE;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
     sge[1].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[1].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void SetAttrAddrReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetAttrAddrReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[2].opcode = IBV_WR_RDMA_WRITE;
     sr[2].wr.rdma.remote_addr = remote_off;
     sge[2].addr = (uint64_t)local_addr;
@@ -753,7 +838,8 @@ class UpdateBatchAttrAddr {
     sr[2].send_flags |= IBV_SEND_INLINE;
   }
 
-  void SetVCellReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetVCellReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[3].opcode = IBV_WR_RDMA_WRITE;
     sr[3].wr.rdma.remote_addr = remote_off;
     sge[3].addr = (uint64_t)local_addr;
@@ -761,7 +847,8 @@ class UpdateBatchAttrAddr {
     sr[3].send_flags |= IBV_SEND_INLINE;
   }
 
-  void UnlockReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void UnlockReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[4].opcode = IBV_WR_RDMA_WRITE;
     sr[4].wr.rdma.remote_addr = remote_off;
     sge[4].addr = (uint64_t)local_addr;
@@ -770,8 +857,10 @@ class UpdateBatchAttrAddr {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
-    for (int i = 0; i < 5; i++) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
+    for (int i = 0; i < 5; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -780,17 +869,19 @@ class UpdateBatchAttrAddr {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 4);
   }
 
- private:
+private:
   struct ibv_send_wr sr[5];
 
   struct ibv_sge sge[5];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };
 
-class InsertBatch {
- public:
-  InsertBatch() {
+class InsertBatch
+{
+public:
+  InsertBatch()
+  {
     // value
     sr[0].num_sge = 1;
     sr[0].sg_list = &sge[0];
@@ -810,17 +901,20 @@ class InsertBatch {
     sr[2].next = NULL;
   }
 
-  void SetValueReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetValueReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[0].opcode = IBV_WR_RDMA_WRITE;
     sr[0].wr.rdma.remote_addr = remote_off;
     sge[0].addr = (uint64_t)local_addr;
     sge[0].length = size;
-    if (size <= MAX_DOORBELL_LEN) {
+    if (size <= MAX_DOORBELL_LEN)
+    {
       sr[0].send_flags |= IBV_SEND_INLINE;
     }
   }
 
-  void SetVCellReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetVCellReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[1].opcode = IBV_WR_RDMA_WRITE;
     sr[1].wr.rdma.remote_addr = remote_off;
     sge[1].addr = (uint64_t)local_addr;
@@ -828,7 +922,8 @@ class InsertBatch {
     sr[1].send_flags |= IBV_SEND_INLINE;
   }
 
-  void SetHeaderReq(char* local_addr, uint64_t remote_off, size_t size) {
+  void SetHeaderReq(char *local_addr, uint64_t remote_off, size_t size)
+  {
     sr[2].opcode = IBV_WR_RDMA_WRITE;
     sr[2].wr.rdma.remote_addr = remote_off;
     sge[2].addr = (uint64_t)local_addr;
@@ -837,8 +932,10 @@ class InsertBatch {
   }
 
   // Send doorbelled requests to the queue pair
-  void SendReqs(CoroutineScheduler* coro_sched, RCQP* qp, coro_id_t coro_id) {
-    for (int i = 0; i < 3; i++) {
+  void SendReqs(CoroutineScheduler *coro_sched, RCQP *qp, coro_id_t coro_id)
+  {
+    for (int i = 0; i < 3; i++)
+    {
       sr[i].wr.rdma.remote_addr += qp->remote_mr_.buf;
       sr[i].wr.rdma.rkey = qp->remote_mr_.key;
       sge[i].lkey = qp->local_mr_.key;
@@ -847,10 +944,10 @@ class InsertBatch {
     coro_sched->RDMABatch(coro_id, qp, &(sr[0]), &bad_sr, 2);
   }
 
- private:
+private:
   struct ibv_send_wr sr[3];
 
   struct ibv_sge sge[3];
 
-  struct ibv_send_wr* bad_sr;
+  struct ibv_send_wr *bad_sr;
 };

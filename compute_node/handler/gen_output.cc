@@ -56,17 +56,21 @@ std::atomic<bool> is_running;
 
 /////////////////////////////////////////////////////////
 
-void TimeStop(t_id_t thread_num_per_machine, int tp_probe_interval_us) {
-  while (is_running) {
+void TimeStop(t_id_t thread_num_per_machine, int tp_probe_interval_us)
+{
+  while (is_running)
+  {
     usleep(tp_probe_interval_us);
-    for (int i = 0; i < thread_num_per_machine; i++) {
+    for (int i = 0; i < thread_num_per_machine; i++)
+    {
       probe[i] = true;
     }
     probe_times++;
   }
 }
 
-void Handler::GenThreads(std::string bench_name) {
+void Handler::GenThreads(std::string bench_name)
+{
   std::string config_filepath = "../../../config/cn_config.json";
   auto json_config = JsonConfig::load_file(config_filepath);
   auto client_conf = json_config.get("local_compute_node");
@@ -81,9 +85,10 @@ void Handler::GenThreads(std::string bench_name) {
 #endif
   assert(machine_id >= 0 && machine_id < machine_num && thread_num_per_machine > 2 * crash_tnum);
 
-  AddrCache* addr_caches = new AddrCache[thread_num_per_machine - crash_tnum];
+  AddrCache *addr_caches = new AddrCache[thread_num_per_machine - crash_tnum];
 
-  for (int i = 0; i < MAX_TNUM_PER_CN; i++) {
+  for (int i = 0; i < MAX_TNUM_PER_CN; i++)
+  {
     access_old_version_cnt[i] = 0;
     access_new_version_cnt[i] = 0;
   }
@@ -109,63 +114,78 @@ void Handler::GenThreads(std::string bench_name) {
 #if HAVE_COORD_CRASH
   // Prepare crash info
 
-  for (int i = 0; i < thread_num_per_machine; i++) {
+  for (int i = 0; i < thread_num_per_machine; i++)
+  {
     to_crash[i] = false;
     report_crash[i] = false;
   }
-  memset((char*)try_times, 0, sizeof(try_times));
+  memset((char *)try_times, 0, sizeof(try_times));
 #endif
 
 #if PROBE_TP
   probe_times = 0;
-  for (int i = 0; i < thread_num_per_machine; i++) {
+  for (int i = 0; i < thread_num_per_machine; i++)
+  {
     probe[i] = false;
   }
   tp_probe_vec.resize(thread_num_per_machine);
 #endif
 
   /* Start working */
-  tx_id_generator = 1;  // Initial transaction id == 1
-  connected_t_num = 0;  // Sync all threads' RDMA QP connections
+  tx_id_generator = 1; // Initial transaction id == 1
+  connected_t_num = 0; // Sync all threads' RDMA QP connections
   connected_recovery_t_num = 0;
 
   auto thread_arr = new std::thread[thread_num_per_machine];
 
-  auto* global_meta_man = new MetaManager();
+  auto *global_meta_man = new MetaManager();
   RDMA_LOG(INFO) << "Alloc local memory: " << (size_t)(thread_num_per_machine * PER_THREAD_ALLOC_SIZE) / (1024 * 1024) << " MB. Waiting...";
-  auto* global_rdma_region = new LocalRegionAllocator(global_meta_man, thread_num_per_machine);
+  auto *global_rdma_region = new LocalRegionAllocator(global_meta_man, thread_num_per_machine);
 
-  auto* global_delta_region = new RemoteDeltaRegionAllocator(global_meta_man, global_meta_man->remote_nodes);
+  auto *global_delta_region = new RemoteDeltaRegionAllocator(global_meta_man, global_meta_man->remote_nodes);
 
-  auto* global_locked_key_table = new LockedKeyTable[thread_num_per_machine * coro_num];
+  auto *global_locked_key_table = new LockedKeyTable[thread_num_per_machine * coro_num];
 
-  auto* param_arr = new struct thread_params[thread_num_per_machine];
+  auto *param_arr = new struct thread_params[thread_num_per_machine];
 
-  TATP* tatp_client = nullptr;
-  SmallBank* smallbank_client = nullptr;
-  TPCC* tpcc_client = nullptr;
+  TATP *tatp_client = nullptr;
+  SmallBank *smallbank_client = nullptr;
+  TPCC *tpcc_client = nullptr;
 
-  if (bench_name == "tatp") {
+  if (bench_name == "tatp")
+  {
     tatp_client = new TATP();
     total_try_times.resize(TATP_TX_TYPES, 0);
     total_commit_times.resize(TATP_TX_TYPES, 0);
-  } else if (bench_name == "smallbank") {
+  }
+  else if (bench_name == "smallbank")
+  {
     smallbank_client = new SmallBank();
     total_try_times.resize(SmallBank_TX_TYPES, 0);
     total_commit_times.resize(SmallBank_TX_TYPES, 0);
-  } else if (bench_name == "tpcc") {
+  }
+  else if (bench_name == "tpcc")
+  {
     tpcc_client = new TPCC();
     total_try_times.resize(TPCC_TX_TYPES, 0);
     total_commit_times.resize(TPCC_TX_TYPES, 0);
-  } else if (bench_name == "micro") {
+  }
+  else if (bench_name == "micro")
+  {
     total_try_times.resize(MICRO_TX_TYPES, 0);
     total_commit_times.resize(MICRO_TX_TYPES, 0);
+  }
+  else if (bench_name == "ycsb")
+  {
+    total_try_times.resize(YCSB_TX_TYPES, 0);
+    total_commit_times.resize(YCSB_TX_TYPES, 0);
   }
 
   RDMA_LOG(INFO) << "Running on isolation level: " << global_meta_man->iso_level;
   RDMA_LOG(INFO) << "Executing...";
 
-  for (t_id_t i = 0; i < thread_num_per_machine - crash_tnum; i++) {
+  for (t_id_t i = 0; i < thread_num_per_machine - crash_tnum; i++)
+  {
     param_arr[i].thread_local_id = i;
     param_arr[i].thread_global_id = (machine_id * thread_num_per_machine) + i;
     param_arr[i].coro_num = coro_num;
@@ -188,7 +208,8 @@ void Handler::GenThreads(std::string bench_name) {
     CPU_ZERO(&cpuset);
     CPU_SET(i, &cpuset);
     int rc = pthread_setaffinity_np(thread_arr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
-    if (rc != 0) {
+    if (rc != 0)
+    {
       RDMA_LOG(WARNING) << "Error calling pthread_setaffinity_np: " << rc;
     }
   }
@@ -225,7 +246,8 @@ void Handler::GenThreads(std::string bench_name) {
   usleep(crash_time_ms * 1000);
 
   // Make crash
-  for (int k = thread_num_per_machine - crash_tnum - crash_tnum; k < thread_num_per_machine - crash_tnum; k++) {
+  for (int k = thread_num_per_machine - crash_tnum - crash_tnum; k < thread_num_per_machine - crash_tnum; k++)
+  {
     std::cerr << "Thread " << k << " should crash" << std::endl;
     to_crash[k] = true;
   }
@@ -234,7 +256,7 @@ void Handler::GenThreads(std::string bench_name) {
     // Print time
     time_t tt;
     struct timeval tv_;
-    struct tm* timeinfo;
+    struct tm *timeinfo;
     long tv_ms = 0, tv_us = 0;
     char output[20];
     time(&tt);
@@ -246,11 +268,12 @@ void Handler::GenThreads(std::string bench_name) {
     printf("crash at :%s %ld:%ld\r\n", output, tv_ms, tv_us);
   }
 
-  for (int crasher = thread_num_per_machine - crash_tnum - crash_tnum; crasher < thread_num_per_machine - crash_tnum; crasher++) {
+  for (int crasher = thread_num_per_machine - crash_tnum - crash_tnum; crasher < thread_num_per_machine - crash_tnum; crasher++)
+  {
     while (!report_crash[crasher])
       ;
 
-    int i = crasher + crash_tnum;  // i is the recovery thread's id
+    int i = crasher + crash_tnum; // i is the recovery thread's id
 
     param_arr[i].thread_local_id = i;
     param_arr[i].thread_global_id = (machine_id * thread_num_per_machine) + i;
@@ -276,14 +299,17 @@ void Handler::GenThreads(std::string bench_name) {
     CPU_ZERO(&cpuset);
     CPU_SET(i, &cpuset);
     int rc = pthread_setaffinity_np(thread_arr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
-    if (rc != 0) {
+    if (rc != 0)
+    {
       RDMA_LOG(WARNING) << "Error calling pthread_setaffinity_np: " << rc;
     }
   }
 #endif
 
-  for (t_id_t i = 0; i < thread_num_per_machine; i++) {
-    if (thread_arr[i].joinable()) {
+  for (t_id_t i = 0; i < thread_num_per_machine; i++)
+  {
+    if (thread_arr[i].joinable())
+    {
       thread_arr[i].join();
       // RDMA_LOG(INFO) << "Thread " << i << " joins";
     }
@@ -291,7 +317,8 @@ void Handler::GenThreads(std::string bench_name) {
 
 #if PROBE_TP
   is_running = false;
-  if (time_stop.joinable()) {
+  if (time_stop.joinable())
+  {
     time_stop.join();
     // RDMA_LOG(INFO) << "timer thread joins";
   }
@@ -304,12 +331,16 @@ void Handler::GenThreads(std::string bench_name) {
   delete[] param_arr;
   delete global_rdma_region;
   delete global_meta_man;
-  if (tatp_client) delete tatp_client;
-  if (smallbank_client) delete smallbank_client;
-  if (tpcc_client) delete tpcc_client;
+  if (tatp_client)
+    delete tatp_client;
+  if (smallbank_client)
+    delete smallbank_client;
+  if (tpcc_client)
+    delete tpcc_client;
 }
 
-void Handler::OutputResult(std::string bench_name, std::string system_name) {
+void Handler::OutputResult(std::string bench_name, std::string system_name)
+{
   RDMA_LOG(INFO) << "Generate results...";
   std::string results_cmd = "mkdir -p ../../../bench_results/" + bench_name;
   system(results_cmd.c_str());
@@ -325,7 +356,8 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
   double total_median = 0;
   double total_tail = 0;
 
-  for (int i = 0; i < tid_vec.size(); i++) {
+  for (int i = 0; i < tid_vec.size(); i++)
+  {
     total_attemp_tp += attemp_tp_vec[i];
     total_tp += tp_vec[i];
     total_median += medianlat_vec[i];
@@ -347,8 +379,10 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
   std::string abort_rate_file = "../../../bench_results/" + bench_name + "/abort_rate.txt";
   of_abort_rate.open(abort_rate_file.c_str(), std::ios::app);
   of_abort_rate << system_name << " tx_type try_num commit_num abort_rate" << std::endl;
-  if (bench_name == "tatp") {
-    for (int i = 0; i < TATP_TX_TYPES; i++) {
+  if (bench_name == "tatp")
+  {
+    for (int i = 0; i < TATP_TX_TYPES; i++)
+    {
       of_abort_rate << TATP_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
 
       // Output the specific txn's abort rate
@@ -357,9 +391,11 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
       of_onetxn_abort_rate.open(onetxn_abort_rate_file.c_str(), std::ios::app);
       of_onetxn_abort_rate << system_name << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-
-  } else if (bench_name == "smallbank") {
-    for (int i = 0; i < SmallBank_TX_TYPES; i++) {
+  }
+  else if (bench_name == "smallbank")
+  {
+    for (int i = 0; i < SmallBank_TX_TYPES; i++)
+    {
       of_abort_rate << SmallBank_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
 
       // Output the specific txn's abort rate
@@ -368,8 +404,11 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
       of_onetxn_abort_rate.open(onetxn_abort_rate_file.c_str(), std::ios::app);
       of_onetxn_abort_rate << system_name << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-  } else if (bench_name == "tpcc") {
-    for (int i = 0; i < TPCC_TX_TYPES; i++) {
+  }
+  else if (bench_name == "tpcc")
+  {
+    for (int i = 0; i < TPCC_TX_TYPES; i++)
+    {
       of_abort_rate << TPCC_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
 
       // Output the specific txn's abort rate
@@ -378,12 +417,28 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
       of_onetxn_abort_rate.open(onetxn_abort_rate_file.c_str(), std::ios::app);
       of_onetxn_abort_rate << system_name << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-  } else if (bench_name == "micro") {
-    for (int i = 0; i < MICRO_TX_TYPES; i++) {
+  }
+  else if (bench_name == "micro")
+  {
+    for (int i = 0; i < MICRO_TX_TYPES; i++)
+    {
       of_abort_rate << MICRO_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
 
       // Output the specific txn's abort rate
       std::string onetxn_abort_rate_file = "../../../bench_results/" + bench_name + "/" + MICRO_TX_NAME[i] + "_abort_rate.txt";
+      std::ofstream of_onetxn_abort_rate;
+      of_onetxn_abort_rate.open(onetxn_abort_rate_file.c_str(), std::ios::app);
+      of_onetxn_abort_rate << system_name << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
+    }
+  }
+  else if (bench_name == "ycsb")
+  {
+    for (int i = 0; i < YCSB_TX_TYPES; i++)
+    {
+      of_abort_rate << YCSB_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
+
+      // Output the specific txn's abort rate
+      std::string onetxn_abort_rate_file = "../../../bench_results/" + bench_name + "/" + YCSB_TX_NAME[i] + "_abort_rate.txt";
       std::ofstream of_onetxn_abort_rate;
       of_onetxn_abort_rate.open(onetxn_abort_rate_file.c_str(), std::ios::app);
       of_onetxn_abort_rate << system_name << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
@@ -396,7 +451,8 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
   std::cout << system_name << " " << total_attemp_tp / 1000 << " " << total_tp / 1000 << " " << avg_median << " " << avg_tail << std::endl;
 
   double total_delta_usage_MB = 0;
-  for (int i = 0; i < delta_usage.size(); i++) {
+  for (int i = 0; i < delta_usage.size(); i++)
+  {
     total_delta_usage_MB += delta_usage[i];
   }
 
@@ -415,23 +471,34 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
 
   std::cout << std::endl;
   std::cout << "abort rate:" << std::endl;
-  if (bench_name == "tatp") {
-    for (int i = 0; i < TATP_TX_TYPES; i++) {
+  if (bench_name == "tatp")
+  {
+    for (int i = 0; i < TATP_TX_TYPES; i++)
+    {
       of_event_count << TATP_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
       std::cout << TATP_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-  } else if (bench_name == "smallbank") {
-    for (int i = 0; i < SmallBank_TX_TYPES; i++) {
+  }
+  else if (bench_name == "smallbank")
+  {
+    for (int i = 0; i < SmallBank_TX_TYPES; i++)
+    {
       of_event_count << SmallBank_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
       std::cout << SmallBank_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-  } else if (bench_name == "tpcc") {
-    for (int i = 0; i < TPCC_TX_TYPES; i++) {
+  }
+  else if (bench_name == "tpcc")
+  {
+    for (int i = 0; i < TPCC_TX_TYPES; i++)
+    {
       of_event_count << TPCC_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
       std::cout << TPCC_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
-  } else if (bench_name == "micro") {
-    for (int i = 0; i < MICRO_TX_TYPES; i++) {
+  }
+  else if (bench_name == "micro")
+  {
+    for (int i = 0; i < MICRO_TX_TYPES; i++)
+    {
       of_event_count << MICRO_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
       std::cout << MICRO_TX_NAME[i] << " " << total_try_times[i] << " " << total_commit_times[i] << " " << (double)(total_try_times[i] - total_commit_times[i]) / (double)total_try_times[i] << std::endl;
     }
@@ -452,30 +519,41 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
 
   std::ofstream of_probe_tp;
   time_t rawtime;
-  struct tm* ptminfo;
+  struct tm *ptminfo;
   time(&rawtime);
   ptminfo = localtime(&rawtime);
   std::string s;
-  if (ptminfo->tm_mon + 1 < 10) {
+  if (ptminfo->tm_mon + 1 < 10)
+  {
     s = std::to_string(ptminfo->tm_year + 1900) + "-0" + std::to_string(ptminfo->tm_mon + 1) + "-" + std::to_string(ptminfo->tm_mday) + "@" + std::to_string(ptminfo->tm_hour) + ":" + std::to_string(ptminfo->tm_min) + ":" + std::to_string(ptminfo->tm_sec);
-  } else {
+  }
+  else
+  {
     s = std::to_string(ptminfo->tm_year + 1900) + "-" + std::to_string(ptminfo->tm_mon + 1) + "-" + std::to_string(ptminfo->tm_mday) + "@" + std::to_string(ptminfo->tm_hour) + ":" + std::to_string(ptminfo->tm_min) + ":" + std::to_string(ptminfo->tm_sec);
   }
 
   std::string probe_file = "../../../bench_results/crash_tests/" + bench_name + "/tp_probe@" + system_name + "@" + s + ".txt";
   of_probe_tp.open(probe_file.c_str(), std::ios::out);
-  for (int i = 0; i < tp_probe_vec.size(); i++) {
-    for (int j = 0; j < tp_probe_vec[i].size(); j++) {
+  for (int i = 0; i < tp_probe_vec.size(); i++)
+  {
+    for (int j = 0; j < tp_probe_vec[i].size(); j++)
+    {
       // sum-up all threads' tp
-      if (tp_time_figure.find(tp_probe_vec[i][j].ctr) == tp_time_figure.end()) {
+      if (tp_time_figure.find(tp_probe_vec[i][j].ctr) == tp_time_figure.end())
+      {
         tp_time_figure[tp_probe_vec[i][j].ctr] = tp_probe_vec[i][j].tp;
-      } else {
+      }
+      else
+      {
         tp_time_figure[tp_probe_vec[i][j].ctr] += tp_probe_vec[i][j].tp;
       }
 
-      if (attemp_tp_time_figure.find(tp_probe_vec[i][j].ctr) == attemp_tp_time_figure.end()) {
+      if (attemp_tp_time_figure.find(tp_probe_vec[i][j].ctr) == attemp_tp_time_figure.end())
+      {
         attemp_tp_time_figure[tp_probe_vec[i][j].ctr] = tp_probe_vec[i][j].attemp_tp;
-      } else {
+      }
+      else
+      {
         attemp_tp_time_figure[tp_probe_vec[i][j].ctr] += tp_probe_vec[i][j].attemp_tp;
       }
     }
@@ -491,11 +569,15 @@ void Handler::OutputResult(std::string bench_name, std::string system_name) {
   iter--;
   int end_time = iter->first;
 
-  for (int i = start_time; i <= end_time; i++) {
+  for (int i = start_time; i <= end_time; i++)
+  {
     auto iter = tp_time_figure.find(i);
-    if (iter != tp_time_figure.end()) {
+    if (iter != tp_time_figure.end())
+    {
       of_probe_tp << iter->first * tp_probe_interval_ms << " " << iter->second / 1000.0 << std::endl;
-    } else {
+    }
+    else
+    {
       of_probe_tp << i << " " << 0 << std::endl;
     }
   }
