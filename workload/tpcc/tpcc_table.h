@@ -44,13 +44,14 @@ static const int DIST = 24;
 static const int NUM_DISTRICT_PER_WAREHOUSE = 10;
 
 // Constants
-struct Address {
-  static const int MIN_STREET = 10;  // W_STREET_1 random a-string [10 .. 20] W_STREET_2 random a-string [10 .. 20]
+struct Address
+{
+  static const int MIN_STREET = 10; // W_STREET_1 random a-string [10 .. 20] W_STREET_2 random a-string [10 .. 20]
   static const int MAX_STREET = 20;
-  static const int MIN_CITY = 10;  // W_CITY random a-string [10 .. 20]
+  static const int MIN_CITY = 10; // W_CITY random a-string [10 .. 20]
   static const int MAX_CITY = 20;
-  static const int STATE = 2;  // W_STATE random a-string of 2 letters
-  static const int ZIP = 9;    // ZIP a-string of 9 letters
+  static const int STATE = 2; // W_STATE random a-string of 2 letters
+  static const int ZIP = 9;   // ZIP a-string of 9 letters
 };
 
 /******************** TPCC table definitions (Schemas of key and value) start **********************/
@@ -59,21 +60,25 @@ struct Address {
  * Primary key: <int32_t w_id>
  */
 
-union tpcc_warehouse_key_t {
-  struct {
+union tpcc_warehouse_key_t
+{
+  struct
+  {
     int32_t w_id;
     uint8_t unused[4];
   };
   itemkey_t item_key;
 
-  tpcc_warehouse_key_t() {
+  tpcc_warehouse_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_warehouse_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_warehouse_val_bitmap : int {
+enum tpcc_warehouse_val_bitmap : int
+{
   w_tax = 0,
   w_ytd,
   w_name,
@@ -84,7 +89,8 @@ enum tpcc_warehouse_val_bitmap : int {
   w_zip
 };
 
-struct tpcc_warehouse_val_t {
+struct tpcc_warehouse_val_t
+{
   static const int MIN_NAME = 6;
   static const int MAX_NAME = 10;
 
@@ -108,20 +114,24 @@ constexpr size_t tpcc_warehouse_val_t_size = sizeof(tpcc_warehouse_val_t);
  * Primary key: <int32_t d_id, int32_t d_w_id>
  */
 
-union tpcc_district_key_t {
-  struct {
+union tpcc_district_key_t
+{
+  struct
+  {
     int64_t d_id;
   };
   itemkey_t item_key;
 
-  tpcc_district_key_t() {
+  tpcc_district_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_district_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_district_val_bitmap : int {
+enum tpcc_district_val_bitmap : int
+{
   d_tax = 0,
   d_ytd,
   d_next_o_id,
@@ -133,7 +143,8 @@ enum tpcc_district_val_bitmap : int {
   d_zip,
 };
 
-struct tpcc_district_val_t {
+struct tpcc_district_val_t
+{
   static const int MIN_NAME = 6;
   static const int MAX_NAME = 10;
 
@@ -158,18 +169,21 @@ constexpr size_t tpcc_district_val_t_size = sizeof(tpcc_district_val_t);
  * Primary key: <int32_t c_id, int32_t c_d_id, int32_t c_w_id>
  */
 
-union tpcc_customer_key_t {
+union tpcc_customer_key_t
+{
   int64_t c_id;
   itemkey_t item_key;
 
-  tpcc_customer_key_t() {
+  tpcc_customer_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_customer_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_customer_val_bitmap : int {
+enum tpcc_customer_val_bitmap : int
+{
   c_credit_lim = 0,
   c_data,
   c_discount,
@@ -190,14 +204,15 @@ enum tpcc_customer_val_bitmap : int {
   c_credit,
 };
 
-struct tpcc_customer_val_t {
-  static const int MIN_FIRST = 8;  // C_FIRST random a-string [8 .. 16]
+struct tpcc_customer_val_t
+{
+  static const int MIN_FIRST = 8; // C_FIRST random a-string [8 .. 16]
   static const int MAX_FIRST = 16;
   static const int MIDDLE = 2;
   static const int MAX_LAST = 16;
-  static const int PHONE = 16;  // C_PHONE random n-string of 16 numbers
+  static const int PHONE = 16; // C_PHONE random n-string of 16 numbers
   static const int CREDIT = 2;
-  static const int MIN_DATA = 300;  // C_DATA random a-string [300 .. 500]
+  static const int MIN_DATA = 300; // C_DATA random a-string [300 .. 500]
   static const int MAX_DATA = 500;
 
   float c_credit_lim;
@@ -225,24 +240,29 @@ constexpr size_t tpcc_customer_val_t_size = sizeof(tpcc_customer_val_t);
 
 // static_assert(sizeof(tpcc_customer_val_t) == 664, "");
 
-union tpcc_customer_index_key_t {
-  struct {
+union tpcc_customer_index_key_t
+{
+  struct
+  {
     uint64_t c_index_id;
   };
   itemkey_t item_key;
 
-  tpcc_customer_index_key_t() {
+  tpcc_customer_index_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_customer_index_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_customer_index_val_bitmap : int {
+enum tpcc_customer_index_val_bitmap : int
+{
   c_id = 0
 };
 
-struct tpcc_customer_index_val_t {
+struct tpcc_customer_index_val_t
+{
   int64_t c_id;
   int64_t debug_magic;
 } __attribute__((packed));
@@ -256,25 +276,29 @@ constexpr size_t tpcc_customer_index_val_t_size = sizeof(tpcc_customer_index_val
  * Primary key: none
  */
 
-union tpcc_history_key_t {
+union tpcc_history_key_t
+{
   int64_t h_id;
   itemkey_t item_key;
 
-  tpcc_history_key_t() {
+  tpcc_history_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_history_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_history_val_bitmap : int {
+enum tpcc_history_val_bitmap : int
+{
   h_amount = 0,
   h_date,
   h_data
 };
 
-struct tpcc_history_val_t {
-  static const int MIN_DATA = 12;  // H_DATA random a-string [12 .. 24] from TPCC documents 5.11
+struct tpcc_history_val_t
+{
+  static const int MIN_DATA = 12; // H_DATA random a-string [12 .. 24] from TPCC documents 5.11
   static const int MAX_DATA = 24;
 
   float h_amount;
@@ -291,22 +315,26 @@ constexpr size_t tpcc_history_val_t_size = sizeof(tpcc_history_val_t);
  * NewOrder table
  * Primary key: <int32_t no_w_id, int32_t no_d_id, int32_t no_o_id>
  */
-union tpcc_new_order_key_t {
+union tpcc_new_order_key_t
+{
   int64_t no_id;
   itemkey_t item_key;
 
-  tpcc_new_order_key_t() {
+  tpcc_new_order_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_new_order_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_new_order_val_bitmap : int {
+enum tpcc_new_order_val_bitmap : int
+{
   no_dummy = 0
 };
 
-struct tpcc_new_order_val_t {
+struct tpcc_new_order_val_t
+{
   static constexpr double SCALE_CONSTANT_BETWEEN_NEWORDER_ORDER = 0.7;
 
   char no_dummy[DUMMY_SIZE + 1];
@@ -322,18 +350,21 @@ constexpr size_t tpcc_new_order_val_t_size = sizeof(tpcc_new_order_val_t);
  * Order table
  * Primary key: <int32_t o_w_id, int32_t o_d_id, int32_t o_id>
  */
-union tpcc_order_key_t {
+union tpcc_order_key_t
+{
   int64_t o_id;
   itemkey_t item_key;
 
-  tpcc_order_key_t() {
+  tpcc_order_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_order_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_order_val_bitmap : int {
+enum tpcc_order_val_bitmap : int
+{
   o_c_id = 0,
   o_carrier_id,
   o_ol_cnt,
@@ -341,9 +372,10 @@ enum tpcc_order_val_bitmap : int {
   o_entry_d
 };
 
-struct tpcc_order_val_t {
+struct tpcc_order_val_t
+{
   static const int MIN_CARRIER_ID = 1;
-  static const int MAX_CARRIER_ID = 10;  // number of distinct per warehouse
+  static const int MAX_CARRIER_ID = 10; // number of distinct per warehouse
 
   int32_t o_c_id;
   int32_t o_carrier_id;
@@ -357,22 +389,26 @@ constexpr size_t tpcc_order_val_t_size = sizeof(tpcc_order_val_t);
 
 // static_assert(sizeof(tpcc_order_val_t) == 20, "");
 
-union tpcc_order_index_key_t {
+union tpcc_order_index_key_t
+{
   int64_t o_index_id;
   itemkey_t item_key;
 
-  tpcc_order_index_key_t() {
+  tpcc_order_index_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_order_index_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_order_index_val_bitmap : int {
+enum tpcc_order_index_val_bitmap : int
+{
   o_id = 0
 };
 
-struct tpcc_order_index_val_t {
+struct tpcc_order_index_val_t
+{
   uint64_t o_id;
   int64_t debug_magic;
   // 1 attribute
@@ -387,18 +423,21 @@ constexpr size_t tpcc_order_index_val_t_size = sizeof(tpcc_order_index_val_t);
  * Primary key: <int32_t ol_o_id, int32_t ol_d_id, int32_t ol_w_id, int32_t ol_number>
  */
 
-union tpcc_order_line_key_t {
+union tpcc_order_line_key_t
+{
   int64_t ol_id;
   itemkey_t item_key;
 
-  tpcc_order_line_key_t() {
+  tpcc_order_line_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_order_line_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_order_line_val_bitmap : int {
+enum tpcc_order_line_val_bitmap : int
+{
   ol_i_id = 0,
   ol_supply_w_id,
   ol_quantity,
@@ -407,7 +446,8 @@ enum tpcc_order_line_val_bitmap : int {
   ol_dist_info
 };
 
-struct tpcc_order_line_val_t {
+struct tpcc_order_line_val_t
+{
   static const int MIN_OL_CNT = 5;
   static const int MAX_OL_CNT = 15;
 
@@ -430,31 +470,36 @@ constexpr size_t tpcc_order_line_val_t_size = sizeof(tpcc_order_line_val_t);
  * Primary key: <int32_t i_id>
  */
 
-union tpcc_item_key_t {
-  struct {
+union tpcc_item_key_t
+{
+  struct
+  {
     int64_t i_id;
   };
   itemkey_t item_key;
 
-  tpcc_item_key_t() {
+  tpcc_item_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_item_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_item_val_bitmap : int {
+enum tpcc_item_val_bitmap : int
+{
   i_im_id = 0,
   i_price,
   i_name,
   i_data
 };
 
-struct tpcc_item_val_t {
-  static const int MIN_NAME = 14;  // I_NAME random a-string [14 .. 24]
+struct tpcc_item_val_t
+{
+  static const int MIN_NAME = 14; // I_NAME random a-string [14 .. 24]
   static const int MAX_NAME = 24;
   static const int MIN_DATA = 26;
-  static const int MAX_DATA = 50;  // I_DATA random a-string [26 .. 50]
+  static const int MAX_DATA = 50; // I_DATA random a-string [26 .. 50]
 
   static const int MIN_IM = 1;
   static const int MAX_IM = 10000;
@@ -476,20 +521,24 @@ constexpr size_t tpcc_item_val_t_size = sizeof(tpcc_item_val_t);
  * Primary key: <int32_t s_i_id, int32_t s_w_id>
  */
 
-union tpcc_stock_key_t {
-  struct {
+union tpcc_stock_key_t
+{
+  struct
+  {
     int64_t s_id;
   };
   itemkey_t item_key;
 
-  tpcc_stock_key_t() {
+  tpcc_stock_key_t()
+  {
     item_key = 0;
   }
 };
 
 static_assert(sizeof(tpcc_stock_key_t) == sizeof(itemkey_t), "");
 
-enum tpcc_stock_val_bitmap : int {
+enum tpcc_stock_val_bitmap : int
+{
   s_quantity = 0,
   s_ytd,
   s_order_cnt,
@@ -498,7 +547,8 @@ enum tpcc_stock_val_bitmap : int {
   s_data
 };
 
-struct tpcc_stock_val_t {
+struct tpcc_stock_val_t
+{
   static const int MIN_DATA = 26;
   static const int MAX_DATA = 50;
   static const int32_t MIN_STOCK_LEVEL_THRESHOLD = 10;
@@ -716,9 +766,9 @@ struct Stock {
 /******************** TPCC table definitions (Schemas of key and value) end **********************/
 
 // Magic numbers for debugging. These are unused in the spec.
-const std::string tpcc_zip_magic("123456789");  // warehouse, district
-const uint32_t tpcc_no_time_magic = 0;          // customer, history, order
-const int64_t tpcc_add_magic = 818;             // customer_index, order_index, new_order, order_line, item, stock
+const std::string tpcc_zip_magic("123456789"); // warehouse, district
+const uint32_t tpcc_no_time_magic = 0;         // customer, history, order
+const int64_t tpcc_add_magic = 818;            // customer_index, order_index, new_order, order_line, item, stock
 
 #define TATP_MAGIC 97 /* Some magic number <= 255 */
 #define tatp_sub_msc_location_magic (TATP_MAGIC)
@@ -736,7 +786,8 @@ const int64_t tpcc_add_magic = 818;             // customer_index, order_index, 
 
 // Transaction workload type
 #define TPCC_TX_TYPES 5
-enum class TPCCTxType {
+enum class TPCCTxType
+{
   kNewOrder = 0,
   kPayment,
   kDelivery,
@@ -748,7 +799,8 @@ const std::string TPCC_TX_NAME[TPCC_TX_TYPES] = {"NewOrder", "Payment", "Deliver
                                                  "OrderStatus", "StockLevel"};
 
 // Table id
-enum TPCCTableType : uint64_t {
+enum TPCCTableType : uint64_t
+{
   kWarehouseTable = TABLE_TPCC,
   kDistrictTable,
   kCustomerTable,

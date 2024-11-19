@@ -115,6 +115,7 @@ void Handler::ConfigureComputeNodeForYCSB(int argc, char *argv[])
   else if (access_pattern == "uniform")
   {
     // uniform
+    // printf("no skew\n");
     s = "sed -i '9c \"is_skewed\": false,' " + workload_filepath;
   }
   system(s.c_str());

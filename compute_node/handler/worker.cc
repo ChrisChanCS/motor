@@ -97,6 +97,7 @@ __thread uint64_t partition_num;
 __thread uint64_t readWriteRatio;
 __thread uint64_t readOnlyTransaction;
 __thread uint64_t crossPartitionProbability;
+__thread uint64_t crossPartitionPartNum = 2;
 
 // Stat the commit rate
 __thread uint64_t *thread_local_try_times;
@@ -618,10 +619,41 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
     uint64_t iter = ++tx_id_generator; // Global atomic transaction id
     itemkey_t key[10];
     bool update[10];
+    uint64_t partitionId[crossPartitionPartNum];
 
-    int readOnly = FastRand(&seed) % 100;
-    uint64_t partitionId = FastRand(&seed) % partition_num;
-    // int crossPartitionPart = FastRand(&seed) % crossPartitionPartNum + 1;
+    uint64_t readOnly = FastRand(&seed) % 100;
+    // uint64_t partitionId = FastRand(&seed) % partition_num;
+    uint64_t numOfCrossPartition = FastRand(&seed) % crossPartitionPartNum + 1;
+    uint64_t crossPartition = FastRand(&seed) % 100;
+
+    bool isCrossPartition = false;
+
+    uint64_t localId = FastRand(&seed) % partition_num;
+
+    partitionId[0] = localId;
+    if (crossPartition <= crossPartitionProbability && crossPartitionPartNum > 1)
+    {
+      isCrossPartition = true;
+      for (int j = 1; j < crossPartitionPartNum; j++)
+      {
+        do
+        {
+          uint64_t tmp = FastRand(&seed) % partition_num;
+          if (tmp != localId)
+          {
+            partitionId[j] = tmp;
+            break;
+          }
+        } while (true);
+      }
+    }
+    else
+    {
+      for (int j = 1; j < crossPartitionPartNum; j++)
+      {
+        partitionId[j] = localId;
+      }
+    }
 
     // a query operates 10 keys
     for (auto i = 0u; i < 10; i++)
@@ -643,6 +675,10 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
           update[i] = true;
         }
       }
+
+      uint64_t pid;
+      pid = partitionId[i % crossPartitionPartNum];
+
       itemkey_t pre_key;
 
       if (is_skewed)
@@ -658,7 +694,7 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
       }
 
       // Get final key
-      key[i] = partitionId * num_keys_partition + pre_key;
+      key[i] = pid * num_keys_partition + pre_key;
 
       assert(key[i] >= 0 && key[i] < num_keys_global);
     }

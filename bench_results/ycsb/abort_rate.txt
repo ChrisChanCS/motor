@@ -1,0 +1,663 @@
+Motor tx_type try_num commit_num abort_rate
+RMW 9744059 1400000 0.856323
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1915485 1400000 0.269115
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4410985 1400000 0.682611
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1527515 1400000 0.0834787
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1528041 1400000 0.0837942
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401720 1400000 0.00122706
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2505006 2500000 0.0019984
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2003395 2000000 0.00169462
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752515 1750000 0.00143508
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1602052 1600000 0.00128086
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752469 1750000 0.00140887
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752525 1750000 0.00144078
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752627 1750000 0.00149889
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752518 1750000 0.00143679
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752524 1750000 0.00144021
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752278 1750000 0.00130002
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752492 1750000 0.00142198
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752549 1750000 0.00145445
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752418 1750000 0.00137981
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752566 1750000 0.00146414
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752434 1750000 0.00138893
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752444 1750000 0.00139462
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752599 1750000 0.00148294
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752488 1750000 0.0014197
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752613 1750000 0.00149092
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752494 1750000 0.00142311
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752455 1750000 0.00140089
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752394 1750000 0.00136613
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752534 1750000 0.00144591
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752572 1750000 0.00146756
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752555 1750000 0.00145787
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752392 1750000 0.00136499
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752516 1750000 0.00143565
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752385 1750000 0.001361
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752488 1750000 0.0014197
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752361 1750000 0.00134733
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752586 1750000 0.00147553
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752563 1750000 0.00146243
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752580 1750000 0.00147212
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752454 1750000 0.00140032
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752412 1750000 0.00137639
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752334 1750000 0.00133194
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752544 1750000 0.0014516
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752428 1750000 0.00138551
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752636 1750000 0.00150402
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752632 1750000 0.00150174
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752485 1750000 0.00141799
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752558 1750000 0.00145958
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752465 1750000 0.00140659
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752420 1750000 0.00138095
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752287 1750000 0.00130515
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752370 1750000 0.00135245
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752240 1750000 0.00127836
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752448 1750000 0.0013969
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752424 1750000 0.00138323
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752475 1750000 0.00141229
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752460 1750000 0.00140374
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752572 1750000 0.00146756
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752515 1750000 0.00143508
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752566 1750000 0.00146414
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752582 1750000 0.00147325
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752413 1750000 0.00137696
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752640 1750000 0.0015063
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752381 1750000 0.00135872
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752502 1750000 0.00142767
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752681 1750000 0.00152966
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752573 1750000 0.00146813
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752540 1750000 0.00144932
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752528 1750000 0.00144249
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752427 1750000 0.00138494
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752584 1750000 0.00147439
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752536 1750000 0.00144705
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752503 1750000 0.00142824
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752398 1750000 0.00136841
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752636 1750000 0.00150402
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752493 1750000 0.00142254
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752536 1750000 0.00144705
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752486 1750000 0.00141856
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752679 1750000 0.00152852
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752611 1750000 0.00148978
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752590 1750000 0.00147781
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752561 1750000 0.00146129
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752448 1750000 0.0013969
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752436 1750000 0.00139007
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752492 1750000 0.00142198
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752531 1750000 0.0014442
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752464 1750000 0.00140602
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752519 1750000 0.00143736
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752472 1750000 0.00141058
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752583 1750000 0.00147382
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752537 1750000 0.00144762
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752447 1750000 0.00139633
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752483 1750000 0.00141685
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752646 1750000 0.00150972
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752563 1750000 0.00146243
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752287 1750000 0.00130515
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752469 1750000 0.00140887
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752602 1750000 0.00148465
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752484 1750000 0.00141742
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752614 1750000 0.00149149
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752630 1750000 0.0015006
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752551 1750000 0.00145559
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752516 1750000 0.00143565
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752466 1750000 0.00140716
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752430 1750000 0.00138665
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752427 1750000 0.00138494
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752377 1750000 0.00135644
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752467 1750000 0.00140773
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752536 1750000 0.00144705
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752718 1750000 0.00155073
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752605 1750000 0.00148636
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752474 1750000 0.00141172
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752458 1750000 0.0014026
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752568 1750000 0.00146528
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752606 1750000 0.00148693
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752581 1750000 0.00147269
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752441 1750000 0.00139291
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752450 1750000 0.00139804
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752430 1750000 0.00138665
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752549 1750000 0.00145445
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752651 1750000 0.00151257
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752385 1750000 0.001361
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752304 1750000 0.00131484
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752289 1750000 0.00130629
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752271 1750000 0.00129603
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752512 1750000 0.00143337
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752303 1750000 0.00131427
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752449 1750000 0.00139747
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752403 1750000 0.00137126
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752630 1750000 0.0015006
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752529 1750000 0.00144306
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1796933 1750000 0.0261184
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1796745 1750000 0.0260165
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1797245 1750000 0.0262875
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1797191 1750000 0.0262582
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1757306 1750000 0.0041575
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2308239 1750000 0.241846
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2387139 1750000 0.266905
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2220547 1750000 0.211906
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2153686 1750000 0.18744
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2215780 1750000 0.21021
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2264530 1750000 0.227213
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2282516 1750000 0.233302
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2331649 1750000 0.249458
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2264876 1750000 0.227331
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2221090 1750000 0.212099
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2241808 1750000 0.21938
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2250090 1750000 0.222253
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2257083 1750000 0.224663
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2190680 1750000 0.201161
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2418426 1750000 0.276389
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2231355 1750000 0.215723
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2231662 1750000 0.215831
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2203807 1750000 0.20592
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2330486 1750000 0.249084
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2226476 1750000 0.214005
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2177703 1750000 0.196401
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2196056 1750000 0.203117
+
+Motor tx_type try_num commit_num abort_rate
+RMW 6759360 1750000 0.7411
+
+Motor tx_type try_num commit_num abort_rate
+RMW 7271142 1750000 0.759323
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8111383 1750000 0.784254
+
+Motor tx_type try_num commit_num abort_rate
+RMW 6890878 1750000 0.746041
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9515251 1750000 0.816085
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10433340 1750000 0.832268
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8251153 1750000 0.787908
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8054343 1750000 0.782726
+
+Motor tx_type try_num commit_num abort_rate
+RMW 11218420 1750000 0.844007
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10197632 1750000 0.828392
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8741622 1750000 0.799808
+
+Motor tx_type try_num commit_num abort_rate
+RMW 7984886 1750000 0.780836
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8361864 1750000 0.790717
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9661607 1750000 0.818871
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9292717 1750000 0.81168
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8170545 1750000 0.785816
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9102507 1750000 0.807745
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10503438 1750000 0.833388
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9008297 1750000 0.805735
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10283533 1750000 0.829825
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9001939 1750000 0.805597
+
+Motor tx_type try_num commit_num abort_rate
+RMW 11252230 1750000 0.844475
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9916631 1750000 0.823529
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8152320 1750000 0.785337
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9474317 1750000 0.81529
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10540598 1750000 0.833975
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8510918 1750000 0.794382
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8979202 1750000 0.805105
+
+Motor tx_type try_num commit_num abort_rate
+RMW 13608032 1750000 0.871399
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8078409 1750000 0.783373
+
+Motor tx_type try_num commit_num abort_rate
+RMW 7574982 1750000 0.768976
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8495524 1750000 0.794009
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8731965 1750000 0.799587
+
+Motor tx_type try_num commit_num abort_rate
+RMW 7896750 1750000 0.77839
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8364510 1750000 0.790783
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8755575 1750000 0.800127
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9027149 1750000 0.80614
+
+Motor tx_type try_num commit_num abort_rate
+RMW 14004778 1750000 0.875043
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9366247 1750000 0.813159
+
+Motor tx_type try_num commit_num abort_rate
+RMW 10062484 1750000 0.826087
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8200213 1750000 0.786591
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8937958 1750000 0.804206
+
+Motor tx_type try_num commit_num abort_rate
+RMW 14235622 1750000 0.877069
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8292328 1750000 0.788962
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9704742 1750000 0.819676
+
+Motor tx_type try_num commit_num abort_rate
+RMW 11056507 1750000 0.841722
+
+Motor tx_type try_num commit_num abort_rate
+RMW 7253600 1750000 0.75874
+
+Motor tx_type try_num commit_num abort_rate
+RMW 9011667 1750000 0.805807
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8695263 1750000 0.798741
+
+Motor tx_type try_num commit_num abort_rate
+RMW 11635741 1750000 0.849601
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8809623 1750000 0.801354
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767645 1750000 0.00998221
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767755 1750000 0.0100438
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767566 1750000 0.00993796
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767718 1750000 0.0100231
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767734 1750000 0.0100321
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767438 1750000 0.00986626
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767407 1750000 0.00984889
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767083 1750000 0.00966734
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767238 1750000 0.0097542
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767185 1750000 0.00972451
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1767189 1750000 0.00972675
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752390 1750000 0.00136385
+
