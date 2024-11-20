@@ -673,3 +673,237 @@ RMW 2089112 1750000 0.162324
 Motor tx_type try_num commit_num abort_rate
 RMW 2133128 1750000 0.179609
 
+Motor tx_type try_num commit_num abort_rate
+RMW 4830146 1400000 0.710154
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8103737 1750000 0.78405
+
+Motor tx_type try_num commit_num abort_rate
+RMW 8214720 1750000 0.786968
+
+Motor tx_type try_num commit_num abort_rate
+RMW 3798305 1400000 0.631415
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5562268 1400000 0.748304
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4531630 1400000 0.69106
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2118993 1750000 0.174136
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1752368 1750000 0.00135131
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401645 1400000 0.00117362
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410436 1400000 0.00739913
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1644333 1400000 0.148591
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2123569 1750000 0.175916
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2116781 1750000 0.173273
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1648157 1400000 0.150566
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1655037 1400000 0.154097
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1667612 1400000 0.160476
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1663443 1400000 0.158372
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1712020 1400000 0.182253
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1669396 1400000 0.161373
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1701394 1400000 0.177145
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1725447 1400000 0.188616
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1683454 1400000 0.168376
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1720560 1400000 0.186311
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1695389 1400000 0.174231
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1695196 1400000 0.174137
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1700543 1400000 0.176734
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1757011 1400000 0.203192
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1731356 1400000 0.191385
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1747241 1400000 0.198737
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1751451 1400000 0.200663
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1762983 1400000 0.205891
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1704593 1400000 0.17869
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1712401 1400000 0.182434
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5196009 1400000 0.730562
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5295147 1400000 0.735607
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4632096 1400000 0.697761
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5860722 1400000 0.761122
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5388492 1400000 0.740187
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5542797 1400000 0.74742
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4997003 1400000 0.719832
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5395002 1400000 0.740501
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5430796 1400000 0.742211
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4261151 1400000 0.67145
+
+Motor tx_type try_num commit_num abort_rate
+RMW 6021457 1400000 0.767498
+
+Motor tx_type try_num commit_num abort_rate
+RMW 6085274 1400000 0.769936
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5671663 1400000 0.753159
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5423315 1400000 0.741855
+
+Motor tx_type try_num commit_num abort_rate
+RMW 4228299 1400000 0.668898
+
+Motor tx_type try_num commit_num abort_rate
+RMW 6367058 1400000 0.780118
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5241343 1400000 0.732893
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5635388 1400000 0.75157
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5469319 1400000 0.744027
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5326238 1400000 0.73715
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5689293 1400000 0.753924
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5801652 1400000 0.758689
+
+Motor tx_type try_num commit_num abort_rate
+RMW 5233856 1400000 0.732511
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410316 1400000 0.00731467
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410403 1400000 0.00737591
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410567 1400000 0.00749131
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410606 1400000 0.00751875
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410451 1400000 0.00740969
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410425 1400000 0.00739139
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410683 1400000 0.00757293
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410357 1400000 0.00734353
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410599 1400000 0.00751383
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410440 1400000 0.00740195
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1410634 1400000 0.00753845
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401641 1400000 0.00117077
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401634 1400000 0.00116578
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401629 1400000 0.00116222
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401678 1400000 0.00119714
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401633 1400000 0.00116507
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401615 1400000 0.00115224
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401666 1400000 0.00118859
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401671 1400000 0.00119215
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401634 1400000 0.00116578
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401680 1400000 0.00119856
+
+Motor tx_type try_num commit_num abort_rate
+RMW 1401653 1400000 0.00117932
+

@@ -17,11 +17,12 @@
 */
 
 // Note: Remote hash slot limits the insertion number. For a 20-slot bucket, the uppper bound is 44744 new order.
-bool TxNewOrder(TPCC* tpcc_client,
-                FastRandom* random_generator,
-                coro_yield_t& yield,
+bool TxNewOrder(TPCC *tpcc_client,
+                FastRandom *random_generator,
+                coro_yield_t &yield,
                 tx_id_t tx_id,
-                TXN* txn) {
+                TXN *txn)
+{
   /*
   "NEW_ORDER": {
   "getWarehouseTaxRate": "SELECT W_TAX FROM WAREHOUSE WHERE W_ID = ?", # w_id
@@ -53,7 +54,7 @@ bool TxNewOrder(TPCC* tpcc_client,
   int64_t c_key = tpcc_client->MakeCustomerKey(warehouse_id, district_id, customer_id);
 
   int32_t all_local = 1;
-  std::set<uint64_t> stock_set;  // remove identity stock ids;
+  std::set<uint64_t> stock_set; // remove identity stock ids;
 
   // local buffer used store stocks
   int64_t remote_stocks[tpcc_order_line_val_t::MAX_OL_CNT], local_stocks[tpcc_order_line_val_t::MAX_OL_CNT];
@@ -64,27 +65,35 @@ bool TxNewOrder(TPCC* tpcc_client,
 
   const int num_items = tpcc_client->RandomNumber(random_generator[txn->coro_id], tpcc_order_line_val_t::MIN_OL_CNT, tpcc_order_line_val_t::MAX_OL_CNT);
 
-  for (int i = 0; i < num_items; i++) {
+  for (int i = 0; i < num_items; i++)
+  {
     int64_t item_id = tpcc_client->GetItemId(random_generator[txn->coro_id]);
     if (tpcc_client->num_warehouse == 1 ||
-        tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, 100) > g_new_order_remote_item_pct) {
+        tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, 100) > tpcc_client->g_new_order_remote_item_pct)
+    {
       // local stock case
       uint32_t supplier_warehouse_id = warehouse_id;
       int64_t s_key = tpcc_client->MakeStockKey(supplier_warehouse_id, item_id);
-      if (stock_set.find(s_key) != stock_set.end()) {
+      if (stock_set.find(s_key) != stock_set.end())
+      {
         i--;
         continue;
-      } else {
+      }
+      else
+      {
         stock_set.insert(s_key);
       }
       local_supplies[num_local_stocks] = supplier_warehouse_id;
       local_item_ids[num_local_stocks] = item_id;
       local_stocks[num_local_stocks++] = s_key;
-    } else {
+    }
+    else
+    {
       // remote stock case
       int64_t s_key;
       uint32_t supplier_warehouse_id;
-      do {
+      do
+      {
         supplier_warehouse_id =
             tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, tpcc_client->num_warehouse);
       } while (supplier_warehouse_id == warehouse_id);
@@ -92,10 +101,13 @@ bool TxNewOrder(TPCC* tpcc_client,
       all_local = 0;
 
       s_key = tpcc_client->MakeStockKey(supplier_warehouse_id, item_id);
-      if (stock_set.find(s_key) != stock_set.end()) {
+      if (stock_set.find(s_key) != stock_set.end())
+      {
         i--;
         continue;
-      } else {
+      }
+      else
+      {
         stock_set.insert(s_key);
       }
       remote_stocks[num_remote_stocks] = s_key;
@@ -132,23 +144,27 @@ bool TxNewOrder(TPCC* tpcc_client,
                                                    UserOP::kUpdate);
   txn->AddToReadWriteSet(dist_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  auto* ware_val = (tpcc_warehouse_val_t*)ware_record->Value();
+  auto *ware_val = (tpcc_warehouse_val_t *)ware_record->Value();
   std::string check(ware_val->w_zip);
-  if (check != tpcc_zip_magic) {
+  if (check != tpcc_zip_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read warehouse unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
-  auto* cust_val = (tpcc_customer_val_t*)cust_record->Value();
+  auto *cust_val = (tpcc_customer_val_t *)cust_record->Value();
   // c_since never be 0
-  if (cust_val->c_since == 0) {
+  if (cust_val->c_since == 0)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read customer unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
-  tpcc_district_val_t* dist_val = (tpcc_district_val_t*)dist_record->Value();
+  tpcc_district_val_t *dist_val = (tpcc_district_val_t *)dist_record->Value();
   check = std::string(dist_val->d_zip);
-  if (check != tpcc_zip_magic) {
+  if (check != tpcc_zip_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read district unmatch, tid-cid-txid-key: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id << "-" << dist_key.item_key << " read d_zip is: " << check;
   }
 
@@ -162,7 +178,7 @@ bool TxNewOrder(TPCC* tpcc_client,
   tpcc_new_order_key_t norder_key;
   norder_key.no_id = no_key;
   auto norder_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kNewOrderTable,
-                                                     tpcc_new_order_val_t_size,  // Insert
+                                                     tpcc_new_order_val_t_size, // Insert
                                                      norder_key.item_key,
                                                      UserOP::kInsert);
   txn->AddToReadWriteSet(norder_record);
@@ -172,7 +188,7 @@ bool TxNewOrder(TPCC* tpcc_client,
   tpcc_order_key_t order_key;
   order_key.o_id = o_key;
   auto order_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kOrderTable,
-                                                    tpcc_order_val_t_size,  // Insert
+                                                    tpcc_order_val_t_size, // Insert
                                                     order_key.item_key,
                                                     UserOP::kInsert);
   txn->AddToReadWriteSet(order_record);
@@ -182,23 +198,26 @@ bool TxNewOrder(TPCC* tpcc_client,
   tpcc_order_index_key_t order_index_key;
   order_index_key.o_index_id = o_index_key;
   auto oidx_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kOrderIndexTable,
-                                                   tpcc_order_index_val_t_size,  // Insert
+                                                   tpcc_order_index_val_t_size, // Insert
                                                    order_index_key.item_key,
                                                    UserOP::kInsert);
   txn->AddToReadWriteSet(oidx_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   // Respectively assign values
-  tpcc_new_order_val_t* norder_val = (tpcc_new_order_val_t*)norder_record->Value();
-  if (!norder_record->IsRealInsert()) {
+  tpcc_new_order_val_t *norder_val = (tpcc_new_order_val_t *)norder_record->Value();
+  if (!norder_record->IsRealInsert())
+  {
     norder_record->SetUpdate(tpcc_new_order_val_bitmap::no_dummy, norder_val->no_dummy, sizeof(norder_val->no_dummy));
   }
   strcpy(norder_val->no_dummy, "neworder");
-  norder_val->debug_magic = tpcc_add_magic;  // Not a real attribute
+  norder_val->debug_magic = tpcc_add_magic; // Not a real attribute
 
-  tpcc_order_val_t* order_val = (tpcc_order_val_t*)order_record->Value();
-  if (!order_record->IsRealInsert()) {
+  tpcc_order_val_t *order_val = (tpcc_order_val_t *)order_record->Value();
+  if (!order_record->IsRealInsert())
+  {
     order_record->SetUpdate(tpcc_order_val_bitmap::o_c_id, &order_val->o_c_id, sizeof(order_val->o_c_id));
     order_record->SetUpdate(tpcc_order_val_bitmap::o_carrier_id, &order_val->o_carrier_id, sizeof(order_val->o_carrier_id));
     order_record->SetUpdate(tpcc_order_val_bitmap::o_ol_cnt, &order_val->o_ol_cnt, sizeof(order_val->o_ol_cnt));
@@ -211,15 +230,17 @@ bool TxNewOrder(TPCC* tpcc_client,
   order_val->o_all_local = all_local;
   order_val->o_entry_d = tpcc_client->GetCurrentTimeMillis();
 
-  tpcc_order_index_val_t* oidx_val = (tpcc_order_index_val_t*)oidx_record->Value();
-  if (!oidx_record->IsRealInsert()) {
+  tpcc_order_index_val_t *oidx_val = (tpcc_order_index_val_t *)oidx_record->Value();
+  if (!oidx_record->IsRealInsert())
+  {
     oidx_record->SetUpdate(tpcc_order_index_val_bitmap::o_id, &oidx_val->o_id, sizeof(oidx_val->o_id));
   }
   oidx_val->o_id = o_key;
   oidx_val->debug_magic = tpcc_add_magic;
 
   // -----------------------------------------------------------------------------
-  for (int ol_number = 1; ol_number <= num_local_stocks; ol_number++) {
+  for (int ol_number = 1; ol_number <= num_local_stocks; ol_number++)
+  {
     const int64_t ol_i_id = local_item_ids[ol_number - 1];
     const uint32_t ol_quantity = tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, 10);
     // read item info
@@ -243,25 +264,31 @@ bool TxNewOrder(TPCC* tpcc_client,
                                                       UserOP::kUpdate);
     txn->AddToReadWriteSet(stock_record);
 
-    if (!txn->Execute(yield)) {
+    if (!txn->Execute(yield))
+    {
       return false;
     }
 
-    tpcc_item_val_t* item_val = (tpcc_item_val_t*)item_record->Value();
-    tpcc_stock_val_t* stock_val = (tpcc_stock_val_t*)stock_record->Value();
+    tpcc_item_val_t *item_val = (tpcc_item_val_t *)item_record->Value();
+    tpcc_stock_val_t *stock_val = (tpcc_stock_val_t *)stock_record->Value();
 
-    if (item_val->debug_magic != tpcc_add_magic) {
+    if (item_val->debug_magic != tpcc_add_magic)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read item unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
-    if (stock_val->debug_magic != tpcc_add_magic) {
+    if (stock_val->debug_magic != tpcc_add_magic)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read stock unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
 
     stock_record->SetUpdate(tpcc_stock_val_bitmap::s_quantity, &stock_val->s_quantity, sizeof(stock_val->s_quantity));
     int32_t new_s_quantity;
-    if (stock_val->s_quantity - ol_quantity >= 10) {
+    if (stock_val->s_quantity - ol_quantity >= 10)
+    {
       stock_val->s_quantity -= ol_quantity;
-    } else {
+    }
+    else
+    {
       stock_val->s_quantity += (-int32_t(ol_quantity) + 91);
     }
 
@@ -277,18 +304,20 @@ bool TxNewOrder(TPCC* tpcc_client,
     order_line_key.ol_id = ol_key;
     // RDMA_LOG(DBG) << warehouse_id << " " << district_id << " " << my_next_o_id << " " <<  ol_number << ". ol_key: " << ol_key;
     auto ol_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kOrderLineTable,
-                                                   sizeof(tpcc_order_line_val_t),  // Insert
+                                                   sizeof(tpcc_order_line_val_t), // Insert
                                                    order_line_key.item_key,
                                                    UserOP::kInsert);
     txn->AddToReadWriteSet(ol_record);
 
-    if (!txn->Execute(yield)) {
+    if (!txn->Execute(yield))
+    {
       return false;
     }
 
-    tpcc_order_line_val_t* order_line_val = (tpcc_order_line_val_t*)ol_record->Value();
+    tpcc_order_line_val_t *order_line_val = (tpcc_order_line_val_t *)ol_record->Value();
 
-    if (!ol_record->IsRealInsert()) {
+    if (!ol_record->IsRealInsert())
+    {
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_i_id, &order_line_val->ol_i_id, sizeof(order_line_val->ol_i_id));
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_delivery_d, &order_line_val->ol_delivery_d, sizeof(order_line_val->ol_delivery_d));
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_amount, &order_line_val->ol_amount, sizeof(order_line_val->ol_amount));
@@ -296,14 +325,15 @@ bool TxNewOrder(TPCC* tpcc_client,
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_quantity, &order_line_val->ol_quantity, sizeof(order_line_val->ol_quantity));
     }
     order_line_val->ol_i_id = int32_t(ol_i_id);
-    order_line_val->ol_delivery_d = 0;  // not delivered yet
+    order_line_val->ol_delivery_d = 0; // not delivered yet
     order_line_val->ol_amount = float(ol_quantity) * item_val->i_price;
     order_line_val->ol_supply_w_id = int32_t(local_supplies[ol_number - 1]);
     order_line_val->ol_quantity = int8_t(ol_quantity);
     order_line_val->debug_magic = tpcc_add_magic;
   }
 
-  for (int ol_number = 1; ol_number <= num_remote_stocks; ol_number++) {
+  for (int ol_number = 1; ol_number <= num_remote_stocks; ol_number++)
+  {
     const int64_t ol_i_id = remote_item_ids[ol_number - 1];
     const uint32_t ol_quantity = tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, 10);
     // read item info
@@ -328,23 +358,29 @@ bool TxNewOrder(TPCC* tpcc_client,
                                                       UserOP::kUpdate);
     txn->AddToReadWriteSet(stock_record);
 
-    if (!txn->Execute(yield)) return false;
+    if (!txn->Execute(yield))
+      return false;
 
-    tpcc_item_val_t* item_val = (tpcc_item_val_t*)item_record->Value();
-    tpcc_stock_val_t* stock_val = (tpcc_stock_val_t*)stock_record->Value();
+    tpcc_item_val_t *item_val = (tpcc_item_val_t *)item_record->Value();
+    tpcc_stock_val_t *stock_val = (tpcc_stock_val_t *)stock_record->Value();
 
-    if (item_val->debug_magic != tpcc_add_magic) {
+    if (item_val->debug_magic != tpcc_add_magic)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read item unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
-    if (stock_val->debug_magic != tpcc_add_magic) {
+    if (stock_val->debug_magic != tpcc_add_magic)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read stock unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
 
     stock_record->SetUpdate(tpcc_stock_val_bitmap::s_quantity, &stock_val->s_quantity, sizeof(stock_val->s_quantity));
     int32_t new_s_quantity;
-    if (stock_val->s_quantity - ol_quantity >= 10) {
+    if (stock_val->s_quantity - ol_quantity >= 10)
+    {
       stock_val->s_quantity -= ol_quantity;
-    } else {
+    }
+    else
+    {
       stock_val->s_quantity += (-int32_t(ol_quantity) + 91);
     }
 
@@ -360,16 +396,18 @@ bool TxNewOrder(TPCC* tpcc_client,
     order_line_key.ol_id = ol_key;
     // RDMA_LOG(DBG) << warehouse_id << " " << district_id << " " << my_next_o_id << " " <<  num_local_stocks + ol_number << ". ol_key: " << ol_key;
     auto ol_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kOrderLineTable,
-                                                   sizeof(tpcc_order_line_val_t),  // Insert
+                                                   sizeof(tpcc_order_line_val_t), // Insert
                                                    order_line_key.item_key,
                                                    UserOP::kInsert);
     txn->AddToReadWriteSet(ol_record);
 
-    if (!txn->Execute(yield)) return false;
+    if (!txn->Execute(yield))
+      return false;
 
-    tpcc_order_line_val_t* order_line_val = (tpcc_order_line_val_t*)ol_record->Value();
+    tpcc_order_line_val_t *order_line_val = (tpcc_order_line_val_t *)ol_record->Value();
 
-    if (!ol_record->IsRealInsert()) {
+    if (!ol_record->IsRealInsert())
+    {
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_i_id, &order_line_val->ol_i_id, sizeof(order_line_val->ol_i_id));
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_delivery_d, &order_line_val->ol_delivery_d, sizeof(order_line_val->ol_delivery_d));
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_amount, &order_line_val->ol_amount, sizeof(order_line_val->ol_amount));
@@ -377,7 +415,7 @@ bool TxNewOrder(TPCC* tpcc_client,
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_quantity, &order_line_val->ol_quantity, sizeof(order_line_val->ol_quantity));
     }
     order_line_val->ol_i_id = int32_t(ol_i_id);
-    order_line_val->ol_delivery_d = 0;  // not delivered yet
+    order_line_val->ol_delivery_d = 0; // not delivered yet
     order_line_val->ol_amount = float(ol_quantity) * item_val->i_price;
     order_line_val->ol_supply_w_id = int32_t(remote_supplies[ol_number - 1]);
     order_line_val->ol_quantity = int8_t(ol_quantity);
@@ -388,11 +426,12 @@ bool TxNewOrder(TPCC* tpcc_client,
   return commit_status;
 }
 
-bool TxPayment(TPCC* tpcc_client,
-               FastRandom* random_generator,
-               coro_yield_t& yield,
+bool TxPayment(TPCC *tpcc_client,
+               FastRandom *random_generator,
+               coro_yield_t &yield,
                tx_id_t tx_id,
-               TXN* txn) {
+               TXN *txn)
+{
   /*
    "getWarehouse": "SELECT W_NAME, W_STREET_1, W_STREET_2, W_CITY, W_STATE, W_ZIP FROM WAREHOUSE WHERE W_ID = ?", # w_id
    "updateWarehouseBalance": "UPDATE WAREHOUSE SET W_YTD = W_YTD + ? WHERE W_ID = ?", # h_amount, w_id
@@ -423,14 +462,20 @@ bool TxPayment(TPCC* tpcc_client,
 
   int32_t c_w_id;
   int32_t c_d_id;
-  if (tpcc_client->num_warehouse == 1 || x <= 85) {
+
+  if (tpcc_client->num_warehouse == 1 || x <= (100 - tpcc_client->g_payment_remote_pct))
+  {
     // 85%: paying through own warehouse (or there is only 1 warehouse)
+    // std::cout << "payment remote ratio is: " << tpcc_client->g_payment_remote_pct << std::endl;
     c_w_id = warehouse_id;
     c_d_id = district_id;
-  } else {
+  }
+  else
+  {
     // 15%: paying through another warehouse:
     // select in range [1, num_warehouses] excluding w_id
-    do {
+    do
+    {
       c_w_id = tpcc_client->RandomNumber(random_generator[txn->coro_id], 1, tpcc_client->num_warehouse);
     } while (c_w_id == warehouse_id);
     c_d_id = tpcc_client->RandomNumber(random_generator[txn->coro_id], district_id_start, district_id_end_);
@@ -438,7 +483,8 @@ bool TxPayment(TPCC* tpcc_client,
   uint32_t customer_id = 0;
   // The payment amount (H_AMOUNT) is randomly selected within [1.00 .. 5,000.00].
   float h_amount = (float)tpcc_client->RandomNumber(random_generator[txn->coro_id], 100, 500000) / 100.0;
-  if (y <= 60) {
+  if (y <= 60)
+  {
     // 60%: payment by last name
     char last_name[tpcc_customer_val_t::MAX_LAST + 1];
     size_t size = (tpcc_client->GetNonUniformCustomerLastNameLoad(random_generator[txn->coro_id])).size();
@@ -450,7 +496,9 @@ bool TxPayment(TPCC* tpcc_client,
     // C_ID, C_FIRST, C_MIDDLE, C_STREET_1, C_STREET_2, C_CITY, C_STATE, C_ZIP, C_PHONE, C_SINCE, C_CREDIT, C_CREDIT_LIM, C_DISCOUNT,
     // and C_BALANCE are retrieved from the row at position (n/ 2 rounded up to the next integer) in the sorted set of selected rows from the CUSTOMER table.
     customer_id = tpcc_client->GetCustomerId(random_generator[txn->coro_id]);
-  } else {
+  }
+  else
+  {
     // 40%: payment by id
     ASSERT(y > 60);
     customer_id = tpcc_client->GetCustomerId(random_generator[txn->coro_id]);
@@ -486,28 +534,32 @@ bool TxPayment(TPCC* tpcc_client,
   tpcc_history_key_t hist_key;
   hist_key.h_id = tpcc_client->MakeHistoryKey(warehouse_id, district_id, c_w_id, c_d_id, customer_id);
   auto hist_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kHistoryTable,
-                                                   tpcc_history_val_t_size,  // Insert
+                                                   tpcc_history_val_t_size, // Insert
                                                    hist_key.item_key,
                                                    UserOP::kInsert);
   txn->AddToReadWriteSet(hist_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  tpcc_warehouse_val_t* ware_val = (tpcc_warehouse_val_t*)ware_record->Value();
+  tpcc_warehouse_val_t *ware_val = (tpcc_warehouse_val_t *)ware_record->Value();
   std::string check(ware_val->w_zip);
-  if (check != tpcc_zip_magic) {
+  if (check != tpcc_zip_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read warehouse unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
-  tpcc_district_val_t* dist_val = (tpcc_district_val_t*)dist_record->Value();
+  tpcc_district_val_t *dist_val = (tpcc_district_val_t *)dist_record->Value();
   check = std::string(dist_val->d_zip);
-  if (check != tpcc_zip_magic) {
+  if (check != tpcc_zip_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read district unmatch, tid-cid-txid-key: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id << "-" << dist_key.item_key << " read d_zip is: " << check;
   }
 
-  tpcc_customer_val_t* cust_val = (tpcc_customer_val_t*)cust_record->Value();
+  tpcc_customer_val_t *cust_val = (tpcc_customer_val_t *)cust_record->Value();
   // c_since never be 0
-  if (cust_val->c_since == 0) {
+  if (cust_val->c_since == 0)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read customer unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
@@ -526,7 +578,8 @@ bool TxPayment(TPCC* tpcc_client,
   cust_record->SetUpdate(tpcc_customer_val_bitmap::c_payment_cnt, &cust_val->c_payment_cnt, sizeof(cust_val->c_payment_cnt));
   cust_val->c_payment_cnt += 1;
 
-  if (strcmp(cust_val->c_credit, BAD_CREDIT) == 0) {
+  if (strcmp(cust_val->c_credit, BAD_CREDIT) == 0)
+  {
     // Bad credit: insert history into c_data
     static const int HISTORY_SIZE = tpcc_customer_val_t::MAX_DATA + 1;
     char history[HISTORY_SIZE];
@@ -536,7 +589,8 @@ bool TxPayment(TPCC* tpcc_client,
 
     // Perform the insert with a move and copy
     int current_keep = static_cast<int>(strlen(cust_val->c_data));
-    if (current_keep + characters > tpcc_customer_val_t::MAX_DATA) {
+    if (current_keep + characters > tpcc_customer_val_t::MAX_DATA)
+    {
       current_keep = tpcc_customer_val_t::MAX_DATA - characters;
     }
     assert(current_keep + characters <= tpcc_customer_val_t::MAX_DATA);
@@ -549,14 +603,15 @@ bool TxPayment(TPCC* tpcc_client,
     assert(strlen(cust_val->c_data) == characters + current_keep);
   }
 
-  tpcc_history_val_t* hist_val = (tpcc_history_val_t*)hist_record->Value();
+  tpcc_history_val_t *hist_val = (tpcc_history_val_t *)hist_record->Value();
 
-  if (!hist_record->IsRealInsert()) {
+  if (!hist_record->IsRealInsert())
+  {
     hist_record->SetUpdate(tpcc_history_val_bitmap::h_date, &hist_val->h_date, sizeof(hist_val->h_date));
     hist_record->SetUpdate(tpcc_history_val_bitmap::h_amount, &hist_val->h_amount, sizeof(hist_val->h_amount));
     hist_record->SetUpdate(tpcc_history_val_bitmap::h_data, hist_val->h_data, sizeof(hist_val->h_data));
   }
-  hist_val->h_date = tpcc_client->GetCurrentTimeMillis();  // different time at server and client cause errors?
+  hist_val->h_date = tpcc_client->GetCurrentTimeMillis(); // different time at server and client cause errors?
   hist_val->h_amount = h_amount;
   strcpy(hist_val->h_data, ware_val->w_name);
   strcat(hist_val->h_data, "    ");
@@ -566,11 +621,12 @@ bool TxPayment(TPCC* tpcc_client,
   return commit_status;
 }
 
-bool TxDelivery(TPCC* tpcc_client,
-                FastRandom* random_generator,
-                coro_yield_t& yield,
+bool TxDelivery(TPCC *tpcc_client,
+                FastRandom *random_generator,
+                coro_yield_t &yield,
                 tx_id_t tx_id,
-                TXN* txn) {
+                TXN *txn)
+{
   /*
   "getNewOrder": "SELECT NO_O_ID FROM NEW_ORDER WHERE NO_D_ID = ? AND NO_W_ID = ? AND NO_O_ID > -1 LIMIT 1", #
   "deleteNewOrder": "DELETE FROM NEW_ORDER WHERE NO_D_ID = ? AND NO_W_ID = ? AND NO_O_ID = ?", # d_id, w_id, no_o_id
@@ -591,7 +647,8 @@ bool TxDelivery(TPCC* tpcc_client,
   const int o_carrier_id = tpcc_client->RandomNumber(random_generator[txn->coro_id], tpcc_order_val_t::MIN_CARRIER_ID, tpcc_order_val_t::MAX_CARRIER_ID);
   const uint32_t current_ts = tpcc_client->GetCurrentTimeMillis();
 
-  for (int d_id = 1; d_id <= tpcc_client->num_district_per_warehouse; d_id++) {
+  for (int d_id = 1; d_id <= tpcc_client->num_district_per_warehouse; d_id++)
+  {
     // FIXME: select the lowest NO_O_ID with matching NO_W_ID (equals W_ID) and NO_D_ID (equals D_ID) in the NEW-ORDER table
     int min_o_id = tpcc_client->num_customer_per_district * tpcc_new_order_val_t::SCALE_CONSTANT_BETWEEN_NEWORDER_ORDER + 1;
     int max_o_id = tpcc_client->num_customer_per_district;
@@ -607,7 +664,8 @@ bool TxDelivery(TPCC* tpcc_client,
     txn->AddToReadOnlySet(norder_record_try_read);
 
     // Get the new order record with the o_id. Probe if the new order record exists
-    if (!txn->Execute(yield, false)) {
+    if (!txn->Execute(yield, false))
+    {
       txn->RemoveLastROItem();
       continue;
     }
@@ -632,18 +690,22 @@ bool TxDelivery(TPCC* tpcc_client,
     txn->AddToReadWriteSet(order_record);
 
     // The row in the ORDER table with matching O_W_ID (equals W_ ID), O_D_ID (equals D_ID), and O_ID (equals NO_O_ID) is selected
-    if (!txn->Execute(yield)) return false;
+    if (!txn->Execute(yield))
+      return false;
 
-    auto* no_val = (tpcc_new_order_val_t*)norder_record->Value();
-    if (!norder_record->is_delete_no_read_value) {
-      if (no_val->debug_magic != tpcc_add_magic) {
+    auto *no_val = (tpcc_new_order_val_t *)norder_record->Value();
+    if (!norder_record->is_delete_no_read_value)
+    {
+      if (no_val->debug_magic != tpcc_add_magic)
+      {
         RDMA_LOG(FATAL) << "[FATAL] Read new order unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
       }
     }
 
     // o_entry_d never be 0
-    tpcc_order_val_t* order_val = (tpcc_order_val_t*)order_record->Value();
-    if (order_val->o_entry_d == 0) {
+    tpcc_order_val_t *order_val = (tpcc_order_val_t *)order_record->Value();
+    if (order_val->o_entry_d == 0)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read order unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
 
@@ -660,7 +722,8 @@ bool TxDelivery(TPCC* tpcc_client,
 
     float sum_ol_amount = 0;
 
-    for (int line_number = 1; line_number <= tpcc_order_line_val_t::MAX_OL_CNT; ++line_number) {
+    for (int line_number = 1; line_number <= tpcc_order_line_val_t::MAX_OL_CNT; ++line_number)
+    {
       int64_t ol_key = tpcc_client->MakeOrderLineKey(warehouse_id, d_id, o_id, line_number);
       tpcc_order_line_key_t order_line_key;
       order_line_key.ol_id = ol_key;
@@ -670,13 +733,14 @@ bool TxDelivery(TPCC* tpcc_client,
                                                               UserOP::kRead);
       txn->AddToReadOnlySet(ol_record_try_read);
 
-      if (!txn->Execute(yield, false)) {
+      if (!txn->Execute(yield, false))
+      {
         // Fail not abort
         txn->RemoveLastROItem();
         continue;
       }
 
-      txn->RemoveLastROItem();  // remove the successfully try read
+      txn->RemoveLastROItem(); // remove the successfully try read
 
       auto ol_record = std::make_shared<DataSetItem>((table_id_t)TPCCTableType::kOrderLineTable,
                                                      tpcc_order_line_val_t_size,
@@ -684,10 +748,12 @@ bool TxDelivery(TPCC* tpcc_client,
                                                      UserOP::kUpdate);
       txn->AddToReadWriteSet(ol_record);
 
-      if (!txn->Execute(yield)) return false;
+      if (!txn->Execute(yield))
+        return false;
 
-      tpcc_order_line_val_t* order_line_val = (tpcc_order_line_val_t*)ol_record->Value();
-      if (order_line_val->debug_magic != tpcc_add_magic) {
+      tpcc_order_line_val_t *order_line_val = (tpcc_order_line_val_t *)ol_record->Value();
+      if (order_line_val->debug_magic != tpcc_add_magic)
+      {
         RDMA_LOG(FATAL) << "[FATAL] Read order line unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
       }
       ol_record->SetUpdate(tpcc_order_line_val_bitmap::ol_delivery_d, &order_line_val->ol_delivery_d, sizeof(order_line_val->ol_delivery_d));
@@ -706,11 +772,13 @@ bool TxDelivery(TPCC* tpcc_client,
                                                      UserOP::kUpdate);
     txn->AddToReadWriteSet(cust_record);
 
-    if (!txn->Execute(yield)) return false;
+    if (!txn->Execute(yield))
+      return false;
 
-    tpcc_customer_val_t* cust_val = (tpcc_customer_val_t*)cust_record->Value();
+    tpcc_customer_val_t *cust_val = (tpcc_customer_val_t *)cust_record->Value();
     // c_since never be 0
-    if (cust_val->c_since == 0) {
+    if (cust_val->c_since == 0)
+    {
       RDMA_LOG(FATAL) << "[FATAL] Read customer unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
     }
 
@@ -727,11 +795,12 @@ bool TxDelivery(TPCC* tpcc_client,
   return commit_status;
 }
 
-bool TxOrderStatus(TPCC* tpcc_client,
-                   FastRandom* random_generator,
-                   coro_yield_t& yield,
+bool TxOrderStatus(TPCC *tpcc_client,
+                   FastRandom *random_generator,
+                   coro_yield_t &yield,
                    tx_id_t tx_id,
-                   TXN* txn) {
+                   TXN *txn)
+{
   /*
   "ORDER_STATUS": {
   "getCustomerByCustomerId": "SELECT C_ID, C_FIRST, C_MIDDLE, C_LAST, C_BALANCE FROM CUSTOMER WHERE C_W_ID = ? AND C_D_ID = ? AND C_ID = ?", # w_id, d_id, c_id
@@ -755,10 +824,13 @@ bool TxOrderStatus(TPCC* tpcc_client,
   const uint32_t district_id = tpcc_client->RandomNumber(random_generator[txn->coro_id], district_id_start, district_id_end_);
   uint32_t customer_id = 0;
 
-  if (y <= 60) {
+  if (y <= 60)
+  {
     // FIXME:: Find customer by the last name
     customer_id = tpcc_client->GetCustomerId(random_generator[txn->coro_id]);
-  } else {
+  }
+  else
+  {
     customer_id = tpcc_client->GetCustomerId(random_generator[txn->coro_id]);
   }
 
@@ -782,21 +854,25 @@ bool TxOrderStatus(TPCC* tpcc_client,
                                                     UserOP::kRead);
   txn->AddToReadOnlySet(order_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  tpcc_customer_val_t* cust_val = (tpcc_customer_val_t*)cust_record->Value();
+  tpcc_customer_val_t *cust_val = (tpcc_customer_val_t *)cust_record->Value();
   // c_since never be 0
-  if (cust_val->c_since == 0) {
+  if (cust_val->c_since == 0)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read customer unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
   // o_entry_d never be 0
-  tpcc_order_val_t* order_val = (tpcc_order_val_t*)order_record->Value();
-  if (order_val->o_entry_d == 0) {
+  tpcc_order_val_t *order_val = (tpcc_order_val_t *)order_record->Value();
+  if (order_val->o_entry_d == 0)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read order unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
-  for (int i = 1; i <= order_val->o_ol_cnt; i++) {
+  for (int i = 1; i <= order_val->o_ol_cnt; i++)
+  {
     int64_t ol_key = tpcc_client->MakeOrderLineKey(warehouse_id, district_id, order_id, i);
     tpcc_order_line_key_t order_line_key;
     order_line_key.ol_id = ol_key;
@@ -807,17 +883,19 @@ bool TxOrderStatus(TPCC* tpcc_client,
     txn->AddToReadOnlySet(ol_record);
   }
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   bool commit_status = txn->Commit(yield);
   return commit_status;
 }
 
-bool TxStockLevel(TPCC* tpcc_client,
-                  FastRandom* random_generator,
-                  coro_yield_t& yield,
+bool TxStockLevel(TPCC *tpcc_client,
+                  FastRandom *random_generator,
+                  coro_yield_t &yield,
                   tx_id_t tx_id,
-                  TXN* txn) {
+                  TXN *txn)
+{
   /*
    "getOId": "SELECT D_NEXT_O_ID FROM DISTRICT WHERE D_W_ID = ? AND D_ID = ?",
    "getStockCount": "SELECT COUNT(DISTINCT(OL_I_ID)) FROM ORDER_LINE, STOCK WHERE OL_W_ID = ? AND OL_D_ID = ? AND OL_O_ID < ? AND OL_O_ID >= ? AND S_W_ID = ? AND S_I_ID = OL_I_ID AND S_QUANTITY < ?
@@ -845,11 +923,13 @@ bool TxStockLevel(TPCC* tpcc_client,
                                                    UserOP::kRead);
   txn->AddToReadOnlySet(dist_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  tpcc_district_val_t* dist_val = (tpcc_district_val_t*)dist_record->Value();
+  tpcc_district_val_t *dist_val = (tpcc_district_val_t *)dist_record->Value();
   std::string check = std::string(dist_val->d_zip);
-  if (check != tpcc_zip_magic) {
+  if (check != tpcc_zip_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read district unmatch, tid-cid-txid-key: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id << "-" << dist_key.item_key << " read d_zip is: " << check;
   }
 
@@ -859,9 +939,11 @@ bool TxStockLevel(TPCC* tpcc_client,
   s_i_ids.reserve(300);
 
   // Iterate over [o_id-20, o_id)
-  for (int order_id = o_id - tpcc_stock_val_t::STOCK_LEVEL_ORDERS; order_id < o_id; ++order_id) {
+  for (int order_id = o_id - tpcc_stock_val_t::STOCK_LEVEL_ORDERS; order_id < o_id; ++order_id)
+  {
     // Populate line_numer is random: [Min_OL_CNT, MAX_OL_CNT)
-    for (int line_number = 1; line_number <= tpcc_order_line_val_t::MAX_OL_CNT; ++line_number) {
+    for (int line_number = 1; line_number <= tpcc_order_line_val_t::MAX_OL_CNT; ++line_number)
+    {
       int64_t ol_key = tpcc_client->MakeOrderLineKey(warehouse_id, district_id, order_id, line_number);
       tpcc_order_line_key_t order_line_key;
       order_line_key.ol_id = ol_key;
@@ -871,14 +953,16 @@ bool TxStockLevel(TPCC* tpcc_client,
                                                      UserOP::kRead);
       txn->AddToReadOnlySet(ol_record);
 
-      if (!txn->Execute(yield, false)) {
+      if (!txn->Execute(yield, false))
+      {
         // Not found, not abort
         txn->RemoveLastROItem();
         break;
       }
 
-      tpcc_order_line_val_t* ol_val = (tpcc_order_line_val_t*)ol_record->Value();
-      if (ol_val->debug_magic != tpcc_add_magic) {
+      tpcc_order_line_val_t *ol_val = (tpcc_order_line_val_t *)ol_record->Value();
+      if (ol_val->debug_magic != tpcc_add_magic)
+      {
         RDMA_LOG(FATAL) << "[FATAL] Read order line unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
       }
 
@@ -891,14 +975,17 @@ bool TxStockLevel(TPCC* tpcc_client,
                                                         UserOP::kRead);
       txn->AddToReadOnlySet(stock_record);
 
-      if (!txn->Execute(yield)) return false;
+      if (!txn->Execute(yield))
+        return false;
 
-      tpcc_stock_val_t* stock_val = (tpcc_stock_val_t*)stock_record->Value();
-      if (stock_val->debug_magic != tpcc_add_magic) {
+      tpcc_stock_val_t *stock_val = (tpcc_stock_val_t *)stock_record->Value();
+      if (stock_val->debug_magic != tpcc_add_magic)
+      {
         RDMA_LOG(FATAL) << "[FATAL] Read stock unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
       }
 
-      if (stock_val->s_quantity < threshold) {
+      if (stock_val->s_quantity < threshold)
+      {
         s_i_ids.push_back(ol_val->ol_i_id);
       }
     }
@@ -907,10 +994,12 @@ bool TxStockLevel(TPCC* tpcc_client,
   // Filter out duplicate s_i_id: multiple order lines can have the same item
   // In O3, this code may be optimized since num_distinct is not outputed.
   std::sort(s_i_ids.begin(), s_i_ids.end());
-  int num_distinct = 0;  // The output of this transaction
-  int32_t last = -1;     // -1 is an invalid s_i_id
-  for (size_t i = 0; i < s_i_ids.size(); ++i) {
-    if (s_i_ids[i] != last) {
+  int num_distinct = 0; // The output of this transaction
+  int32_t last = -1;    // -1 is an invalid s_i_id
+  for (size_t i = 0; i < s_i_ids.size(); ++i)
+  {
+    if (s_i_ids[i] != last)
+    {
       last = s_i_ids[i];
       num_distinct += 1;
     }

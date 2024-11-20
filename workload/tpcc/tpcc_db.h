@@ -12,8 +12,9 @@
 #include "util/fast_random.h"
 #include "util/json_config.h"
 
-class TPCC {
- public:
+class TPCC
+{
+public:
   std::string bench_name;
 
   // Pre-defined constants, which will be modified for tests
@@ -27,35 +28,40 @@ class TPCC {
 
   uint32_t num_stock_per_warehouse = 100000;
 
+  int64_t g_new_order_remote_item_pct;
+
+  int64_t g_payment_remote_pct;
+
   /* Tables */
-  HashStore* warehouse_table = nullptr;
+  HashStore *warehouse_table = nullptr;
 
-  HashStore* district_table = nullptr;
+  HashStore *district_table = nullptr;
 
-  HashStore* customer_table = nullptr;
+  HashStore *customer_table = nullptr;
 
-  HashStore* history_table = nullptr;
+  HashStore *history_table = nullptr;
 
-  HashStore* new_order_table = nullptr;
+  HashStore *new_order_table = nullptr;
 
-  HashStore* order_table = nullptr;
+  HashStore *order_table = nullptr;
 
-  HashStore* order_line_table = nullptr;
+  HashStore *order_line_table = nullptr;
 
-  HashStore* item_table = nullptr;
+  HashStore *item_table = nullptr;
 
-  HashStore* stock_table = nullptr;
+  HashStore *stock_table = nullptr;
 
-  HashStore* customer_index_table = nullptr;
+  HashStore *customer_index_table = nullptr;
 
-  HashStore* order_index_table = nullptr;
+  HashStore *order_index_table = nullptr;
 
-  std::vector<HashStore*> primary_table_ptrs;
+  std::vector<HashStore *> primary_table_ptrs;
 
-  std::vector<HashStore*> backup_table_ptrs;
+  std::vector<HashStore *> backup_table_ptrs;
 
   // For server and client usage: Provide interfaces to servers for loading tables
-  TPCC() {
+  TPCC()
+  {
     bench_name = "TPCC";
     std::string config_filepath = "../../../config/tpcc_config.json";
     auto json_config = JsonConfig::load_file(config_filepath);
@@ -68,7 +74,8 @@ class TPCC {
     num_stock_per_warehouse = table_config.get("num_stock_per_warehouse").get_uint64();
   }
 
-  ~TPCC() {
+  ~TPCC()
+  {
     delete warehouse_table;
     delete customer_table;
     delete history_table;
@@ -81,25 +88,31 @@ class TPCC {
 
   /* create workload generation array for benchmarking */
   ALWAYS_INLINE
-  TPCCTxType* CreateWorkgenArray() {
-    TPCCTxType* workgen_arr = new TPCCTxType[100];
+  TPCCTxType *CreateWorkgenArray()
+  {
+    TPCCTxType *workgen_arr = new TPCCTxType[100];
 
     int i = 0, j = 0;
 
     j += FREQUENCY_NEW_ORDER;
-    for (; i < j; i++) workgen_arr[i] = TPCCTxType::kNewOrder;
+    for (; i < j; i++)
+      workgen_arr[i] = TPCCTxType::kNewOrder;
 
     j += FREQUENCY_PAYMENT;
-    for (; i < j; i++) workgen_arr[i] = TPCCTxType::kPayment;
+    for (; i < j; i++)
+      workgen_arr[i] = TPCCTxType::kPayment;
 
     j += FREQUENCY_ORDER_STATUS;
-    for (; i < j; i++) workgen_arr[i] = TPCCTxType::kOrderStatus;
+    for (; i < j; i++)
+      workgen_arr[i] = TPCCTxType::kOrderStatus;
 
     j += FREQUENCY_DELIVERY;
-    for (; i < j; i++) workgen_arr[i] = TPCCTxType::kDelivery;
+    for (; i < j; i++)
+      workgen_arr[i] = TPCCTxType::kDelivery;
 
     j += FREQUENCY_STOCK_LEVEL;
-    for (; i < j; i++) workgen_arr[i] = TPCCTxType::kStockLevel;
+    for (; i < j; i++)
+      workgen_arr[i] = TPCCTxType::kStockLevel;
 
     assert(i == 100 && j == 100);
     return workgen_arr;
@@ -108,12 +121,12 @@ class TPCC {
   // For server-side usage
   void LoadTable(node_id_t node_id,
                  node_id_t num_server,
-                 MemStoreAllocParam* mem_store_alloc_param,
-                 size_t& total_size,
-                 size_t& ht_loadfv_size,
-                 size_t& ht_size,
-                 size_t& initfv_size,
-                 size_t& real_cvt_size);
+                 MemStoreAllocParam *mem_store_alloc_param,
+                 size_t &total_size,
+                 size_t &ht_loadfv_size,
+                 size_t &ht_size,
+                 size_t &initfv_size,
+                 size_t &real_cvt_size);
 
   void Populate_Warehouse_Table(unsigned long seed);
 
@@ -127,25 +140,28 @@ class TPCC {
 
   void Populate_Stock_Table(unsigned long seed);
 
-  void LoadRecord(HashStore* table,
+  void LoadRecord(HashStore *table,
                   itemkey_t item_key,
-                  void* val_ptr,
+                  void *val_ptr,
                   size_t val_size,
                   table_id_t table_id);
 
   ALWAYS_INLINE
-  std::vector<HashStore*>& GetPrimaryHashStore() {
+  std::vector<HashStore *> &GetPrimaryHashStore()
+  {
     return primary_table_ptrs;
   }
 
   ALWAYS_INLINE
-  std::vector<HashStore*>& GetBackupHashStore() {
+  std::vector<HashStore *> &GetBackupHashStore()
+  {
     return backup_table_ptrs;
   }
 
   /* Followng pieces of codes mainly comes from Silo */
   ALWAYS_INLINE
-  uint32_t GetCurrentTimeMillis() {
+  uint32_t GetCurrentTimeMillis()
+  {
     // implement a scalable GetCurrentTimeMillis()
     // for now, we just give each core an increasing number
     static __thread uint32_t tl_hack = 0;
@@ -154,35 +170,41 @@ class TPCC {
 
   // utils for generating random #s and strings
   ALWAYS_INLINE
-  int CheckBetweenInclusive(int v, int lower, int upper) {
+  int CheckBetweenInclusive(int v, int lower, int upper)
+  {
     assert(v >= lower);
     assert(v <= upper);
     return v;
   }
 
   ALWAYS_INLINE
-  int RandomNumber(FastRandom& r, int min, int max) {
+  int RandomNumber(FastRandom &r, int min, int max)
+  {
     return CheckBetweenInclusive((int)(r.NextUniform() * (max - min + 1) + min), min, max);
   }
 
   ALWAYS_INLINE
-  int NonUniformRandom(FastRandom& r, int A, int C, int min, int max) {
+  int NonUniformRandom(FastRandom &r, int A, int C, int min, int max)
+  {
     return (((RandomNumber(r, 0, A) | RandomNumber(r, min, max)) + C) % (max - min + 1)) + min;
   }
 
   ALWAYS_INLINE
-  int64_t GetItemId(FastRandom& r) {
+  int64_t GetItemId(FastRandom &r)
+  {
     return CheckBetweenInclusive(g_uniform_item_dist ? RandomNumber(r, 1, num_item) : NonUniformRandom(r, 8191, 7911, 1, num_item), 1, num_item);
   }
 
   ALWAYS_INLINE
-  int GetCustomerId(FastRandom& r) {
+  int GetCustomerId(FastRandom &r)
+  {
     return CheckBetweenInclusive(NonUniformRandom(r, 1023, 259, 1, num_customer_per_district), 1, num_customer_per_district);
   }
 
   // pick a number between [start, end)
   ALWAYS_INLINE
-  unsigned PickWarehouseId(FastRandom& r, unsigned start, unsigned end) {
+  unsigned PickWarehouseId(FastRandom &r, unsigned start, unsigned end)
+  {
     assert(start < end);
     const unsigned diff = end - start;
     if (diff == 1)
@@ -190,11 +212,12 @@ class TPCC {
     return (r.Next() % diff) + start;
   }
 
-  inline size_t GetCustomerLastName(uint8_t* buf, FastRandom& r, int num) {
-    const std::string& s0 = NameTokens[num / 100];
-    const std::string& s1 = NameTokens[(num / 10) % 10];
-    const std::string& s2 = NameTokens[num % 10];
-    uint8_t* const begin = buf;
+  inline size_t GetCustomerLastName(uint8_t *buf, FastRandom &r, int num)
+  {
+    const std::string &s0 = NameTokens[num / 100];
+    const std::string &s1 = NameTokens[(num / 10) % 10];
+    const std::string &s2 = NameTokens[num % 10];
+    uint8_t *const begin = buf;
     const size_t s0_sz = s0.size();
     const size_t s1_sz = s1.size();
     const size_t s2_sz = s2.size();
@@ -208,46 +231,54 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  size_t GetCustomerLastName(char* buf, FastRandom& r, int num) {
-    return GetCustomerLastName((uint8_t*)buf, r, num);
+  size_t GetCustomerLastName(char *buf, FastRandom &r, int num)
+  {
+    return GetCustomerLastName((uint8_t *)buf, r, num);
   }
 
-  inline std::string GetCustomerLastName(FastRandom& r, int num) {
+  inline std::string GetCustomerLastName(FastRandom &r, int num)
+  {
     std::string ret;
     ret.resize(CustomerLastNameMaxSize);
-    ret.resize(GetCustomerLastName((uint8_t*)&ret[0], r, num));
+    ret.resize(GetCustomerLastName((uint8_t *)&ret[0], r, num));
     return ret;
   }
 
   ALWAYS_INLINE
-  std::string GetNonUniformCustomerLastNameLoad(FastRandom& r) {
+  std::string GetNonUniformCustomerLastNameLoad(FastRandom &r)
+  {
     return GetCustomerLastName(r, NonUniformRandom(r, 255, 157, 0, 999));
   }
 
   ALWAYS_INLINE
-  size_t GetNonUniformCustomerLastNameRun(uint8_t* buf, FastRandom& r) {
+  size_t GetNonUniformCustomerLastNameRun(uint8_t *buf, FastRandom &r)
+  {
     return GetCustomerLastName(buf, r, NonUniformRandom(r, 255, 223, 0, 999));
   }
 
   ALWAYS_INLINE
-  size_t GetNonUniformCustomerLastNameRun(char* buf, FastRandom& r) {
-    return GetNonUniformCustomerLastNameRun((uint8_t*)buf, r);
+  size_t GetNonUniformCustomerLastNameRun(char *buf, FastRandom &r)
+  {
+    return GetNonUniformCustomerLastNameRun((uint8_t *)buf, r);
   }
 
   ALWAYS_INLINE
-  std::string GetNonUniformCustomerLastNameRun(FastRandom& r) {
+  std::string GetNonUniformCustomerLastNameRun(FastRandom &r)
+  {
     return GetCustomerLastName(r, NonUniformRandom(r, 255, 223, 0, 999));
   }
 
   ALWAYS_INLINE
-  std::string RandomStr(FastRandom& r, uint64_t len) {
+  std::string RandomStr(FastRandom &r, uint64_t len)
+  {
     // this is a property of the oltpbench implementation...
     if (!len)
       return "";
 
     uint64_t i = 0;
     std::string buf(len, 0);
-    while (i < (len)) {
+    while (i < (len))
+    {
       const char c = (char)r.NextChar();
       // oltpbench uses java's Character.isLetter(), which
       // is a less restrictive filter than isalnum()
@@ -260,7 +291,8 @@ class TPCC {
 
   // RandomNStr() actually produces a string of length len
   ALWAYS_INLINE
-  std::string RandomNStr(FastRandom& r, uint64_t len) {
+  std::string RandomNStr(FastRandom &r, uint64_t len)
+  {
     const char base = '0';
     std::string buf(len, 0);
     for (uint64_t i = 0; i < len; i++)
@@ -269,7 +301,8 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  int64_t MakeDistrictKey(int32_t w_id, int32_t d_id) {
+  int64_t MakeDistrictKey(int32_t w_id, int32_t d_id)
+  {
     int32_t did = d_id + (w_id * num_district_per_warehouse);
     int64_t id = static_cast<int64_t>(did);
     // assert(districtKeyToWare(id) == w_id);
@@ -277,7 +310,8 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  int64_t MakeCustomerKey(int32_t w_id, int32_t d_id, int32_t c_id) {
+  int64_t MakeCustomerKey(int32_t w_id, int32_t d_id, int32_t c_id)
+  {
     int32_t upper_id = w_id * num_district_per_warehouse + d_id;
     int64_t id = static_cast<int64_t>(upper_id) << 32 | static_cast<int64_t>(c_id);
     // assert(customerKeyToWare(id) == w_id);
@@ -286,7 +320,8 @@ class TPCC {
 
   // only used for customer index, maybe some problems when used.
   ALWAYS_INLINE
-  void ConvertString(char* newstring, const char* oldstring, int size) {
+  void ConvertString(char *newstring, const char *oldstring, int size)
+  {
     for (int i = 0; i < 8; i++)
       if (i < size)
         newstring[7 - i] = oldstring[i];
@@ -301,17 +336,19 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  uint64_t MakeCustomerIndexKey(int32_t w_id, int32_t d_id, std::string s_last, std::string s_first) {
-    uint64_t* seckey = new uint64_t[5];
+  uint64_t MakeCustomerIndexKey(int32_t w_id, int32_t d_id, std::string s_last, std::string s_first)
+  {
+    uint64_t *seckey = new uint64_t[5];
     int32_t did = d_id + (w_id * num_district_per_warehouse);
     seckey[0] = did;
-    ConvertString((char*)(&seckey[1]), s_last.data(), s_last.size());
-    ConvertString((char*)(&seckey[3]), s_first.data(), s_first.size());
+    ConvertString((char *)(&seckey[1]), s_last.data(), s_last.size());
+    ConvertString((char *)(&seckey[3]), s_first.data(), s_first.size());
     return (uint64_t)seckey;
   }
 
   ALWAYS_INLINE
-  int64_t MakeHistoryKey(int32_t h_w_id, int32_t h_d_id, int32_t h_c_w_id, int32_t h_c_d_id, int32_t h_c_id) {
+  int64_t MakeHistoryKey(int32_t h_w_id, int32_t h_d_id, int32_t h_c_w_id, int32_t h_c_d_id, int32_t h_c_id)
+  {
     int32_t cid = (h_c_w_id * num_district_per_warehouse + h_c_d_id) * num_customer_per_district + h_c_id;
     int32_t did = h_d_id + (h_w_id * num_district_per_warehouse);
     int64_t id = static_cast<int64_t>(cid) << 20 | static_cast<int64_t>(did);
@@ -319,14 +356,16 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  int64_t MakeNewOrderKey(int32_t w_id, int32_t d_id, int32_t o_id) {
+  int64_t MakeNewOrderKey(int32_t w_id, int32_t d_id, int32_t o_id)
+  {
     int32_t upper_id = w_id * num_district_per_warehouse + d_id;
     int64_t id = static_cast<int64_t>(upper_id) << 32 | static_cast<int64_t>(o_id);
     return id;
   }
 
   ALWAYS_INLINE
-  int64_t MakeOrderKey(int32_t w_id, int32_t d_id, int32_t o_id) {
+  int64_t MakeOrderKey(int32_t w_id, int32_t d_id, int32_t o_id)
+  {
     int32_t upper_id = w_id * num_district_per_warehouse + d_id;
     int64_t id = static_cast<int64_t>(upper_id) << 32 | static_cast<int64_t>(o_id);
     // assert(orderKeyToWare(id) == w_id);
@@ -334,14 +373,16 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  int64_t MakeOrderIndexKey(int32_t w_id, int32_t d_id, int32_t c_id, int32_t o_id) {
+  int64_t MakeOrderIndexKey(int32_t w_id, int32_t d_id, int32_t c_id, int32_t o_id)
+  {
     int32_t upper_id = (w_id * num_district_per_warehouse + d_id) * num_customer_per_district + c_id;
     int64_t id = static_cast<int64_t>(upper_id) << 32 | static_cast<int64_t>(o_id);
     return id;
   }
 
   ALWAYS_INLINE
-  int64_t MakeOrderLineKey(int32_t w_id, int32_t d_id, int32_t o_id, int32_t number) {
+  int64_t MakeOrderLineKey(int32_t w_id, int32_t d_id, int32_t o_id, int32_t number)
+  {
     int32_t upper_id = w_id * num_district_per_warehouse + d_id;
     // 10000000 is the MAX ORDER ID
     int64_t oid = static_cast<int64_t>(upper_id) * 10000000 + static_cast<int64_t>(o_id);
@@ -352,7 +393,8 @@ class TPCC {
   }
 
   ALWAYS_INLINE
-  int64_t MakeStockKey(int32_t w_id, int32_t i_id) {
+  int64_t MakeStockKey(int32_t w_id, int32_t i_id)
+  {
     int32_t item_id = i_id + (w_id * num_stock_per_warehouse);
     int64_t s_id = static_cast<int64_t>(item_id);
     // assert(stockKeyToWare(id) == w_id);

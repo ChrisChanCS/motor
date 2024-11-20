@@ -859,7 +859,9 @@ void run_thread(thread_params *params,
     std::string tpcc_config_filepath = "../../../config/tpcc_config.json";
     auto json_config = JsonConfig::load_file(tpcc_config_filepath);
     auto tpcc_conf = json_config.get("tpcc");
-    g_new_order_remote_item_pct = tpcc_conf.get("remote_ratio").get_int64();
+    tpcc_cli->g_new_order_remote_item_pct = tpcc_conf.get("order_remote_ratio").get_int64();
+    tpcc_cli->g_payment_remote_pct = tpcc_conf.get("payment_remote_ratio").get_int64();
+    // std::cout << "remote ratio is: " << g_new_order_remote_item_pct << std::endl;
   }
 
   // Initialize Zipf generator for MICRO benchmark
