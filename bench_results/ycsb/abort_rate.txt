@@ -661,3 +661,15 @@ RMW 1767189 1750000 0.00972675
 Motor tx_type try_num commit_num abort_rate
 RMW 1752390 1750000 0.00136385
 
+Motor tx_type try_num commit_num abort_rate
+RMW 1752464 1750000 0.00140602
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2217343 1750000 0.210767
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2089112 1750000 0.162324
+
+Motor tx_type try_num commit_num abort_rate
+RMW 2133128 1750000 0.179609
+

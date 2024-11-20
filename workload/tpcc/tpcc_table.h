@@ -14,7 +14,7 @@
 // Use uint32 for data and time
 static int g_uniform_item_dist = 0;
 
-static int g_new_order_remote_item_pct = 1;
+int g_new_order_remote_item_pct = 1;
 
 static int g_mico_dist_num = 20;
 

@@ -82,6 +82,9 @@ __thread uint64_t last_stat_attempted_tx_total = 0;
 __thread uint64_t last_stat_committed_tx_total = 0;
 const coro_id_t POLL_ROUTINE_ID = 0; // The poll coroutine ID
 
+// For TPCC benchmark
+// __thread int g_new_order_remote_item_pct;
+
 // For MICRO benchmark
 __thread ZipfGen *zipf_gen = nullptr;
 __thread bool is_skewed;
@@ -655,9 +658,48 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
       }
     }
 
+    // std::vector<itemkey_t> writeKeys;
+
     // a query operates 10 keys
     for (auto i = 0u; i < 10; i++)
     {
+      uint64_t pid;
+      pid = partitionId[i % crossPartitionPartNum];
+
+      bool retry;
+      itemkey_t pre_key;
+      itemkey_t final_key;
+      do
+      {
+        // avoid key confliction
+        retry = false;
+        if (is_skewed)
+        {
+          // Skewed distribution
+          pre_key = (itemkey_t)(zipf_gen->next());
+        }
+        else
+        {
+          // Uniformed distribution
+          pre_key = (itemkey_t)FastRand(&seed) & (num_keys_partition - 1);
+          // key = (itemkey_t)FastRand(&seed) & (num_keys_global - 1);
+        }
+
+        // Get final key
+        final_key = pid * num_keys_partition + pre_key;
+        for (auto k = 0u; k < i; k++)
+        {
+          if (final_key == key[k])
+          {
+            retry = true;
+            break;
+          }
+        }
+      } while (retry == true);
+
+      key[i] = final_key;
+
+      assert(key[i] >= 0 && key[i] < num_keys_global);
 
       if (readOnly <= readOnlyTransaction)
       {
@@ -673,30 +715,9 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
         else
         {
           update[i] = true;
+          // writeKeys.push_back(final_key);
         }
       }
-
-      uint64_t pid;
-      pid = partitionId[i % crossPartitionPartNum];
-
-      itemkey_t pre_key;
-
-      if (is_skewed)
-      {
-        // Skewed distribution
-        pre_key = (itemkey_t)(zipf_gen->next());
-      }
-      else
-      {
-        // Uniformed distribution
-        pre_key = (itemkey_t)FastRand(&seed) & (num_keys_partition - 1);
-        // key = (itemkey_t)FastRand(&seed) & (num_keys_global - 1);
-      }
-
-      // Get final key
-      key[i] = pid * num_keys_partition + pre_key;
-
-      assert(key[i] >= 0 && key[i] < num_keys_global);
     }
 
     thread_local_try_times[uint64_t(YCSBTxType::RMW)]++;
@@ -832,6 +853,14 @@ void run_thread(thread_params *params,
   tp_probe_list = thread_tp_probe;
 
   timer = new double[ATTEMPTED_NUM]();
+
+  if (bench_name == "tpcc")
+  {
+    std::string tpcc_config_filepath = "../../../config/tpcc_config.json";
+    auto json_config = JsonConfig::load_file(tpcc_config_filepath);
+    auto tpcc_conf = json_config.get("tpcc");
+    g_new_order_remote_item_pct = tpcc_conf.get("remote_ratio").get_int64();
+  }
 
   // Initialize Zipf generator for MICRO benchmark
   if (bench_name == "micro")
