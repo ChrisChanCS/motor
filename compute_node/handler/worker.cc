@@ -703,12 +703,17 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
 
       if (readOnly <= readOnlyTransaction)
       {
+        // read only
         update[i] = false;
       }
       else
       {
+        // write only
+        // update[i] = true;
+
+        // read-write case
         int readOrWrite = FastRand(&seed) % 100;
-        if (readOrWrite <= readWriteRatio)
+        if (readOrWrite < readWriteRatio)
         {
           update[i] = false;
         }
@@ -862,6 +867,15 @@ void run_thread(thread_params *params,
     tpcc_cli->g_new_order_remote_item_pct = tpcc_conf.get("order_remote_ratio").get_int64();
     tpcc_cli->g_payment_remote_pct = tpcc_conf.get("payment_remote_ratio").get_int64();
     // std::cout << "remote ratio is: " << g_new_order_remote_item_pct << std::endl;
+  }
+
+  if (bench_name == "smallbank")
+  {
+    std::string smallbank_config_filepath = "../../../config/smallbank_config.json";
+    auto json_config = JsonConfig::load_file(smallbank_config_filepath);
+    auto smallbank_conf = json_config.get("smallbank");
+    smallbank_cli->remote_ratio = smallbank_conf.get("remote_ratio").get_int64();
+    smallbank_cli->num_partitions = smallbank_conf.get("num_partitions").get_int64();
   }
 
   // Initialize Zipf generator for MICRO benchmark

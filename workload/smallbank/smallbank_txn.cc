@@ -5,11 +5,13 @@
 
 /******************** The business logic (Transaction) start ********************/
 
-bool TxAmalgamate(SmallBank* smallbank_client,
-                  uint64_t* seed,
-                  coro_yield_t& yield,
+// transfer account 1's (check+save) money to account 2's check
+bool TxAmalgamate(SmallBank *smallbank_client,
+                  uint64_t *seed,
+                  coro_yield_t &yield,
                   tx_id_t tx_id,
-                  TXN* txn) {
+                  TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kRWTxn);
 
   /* Transaction parameters */
@@ -42,19 +44,23 @@ bool TxAmalgamate(SmallBank* smallbank_client,
                                                     UserOP::kUpdate);
   txn->AddToReadWriteSet(chk_record_1);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   /* If we are here, execution succeeded and we have locks */
-  smallbank_savings_val_t* sav_val_0 = (smallbank_savings_val_t*)sav_record_0->Value();
-  smallbank_checking_val_t* chk_val_0 = (smallbank_checking_val_t*)chk_record_0->Value();
-  smallbank_checking_val_t* chk_val_1 = (smallbank_checking_val_t*)chk_record_1->Value();
-  if (sav_val_0->magic != smallbank_savings_magic) {
+  smallbank_savings_val_t *sav_val_0 = (smallbank_savings_val_t *)sav_record_0->Value();
+  smallbank_checking_val_t *chk_val_0 = (smallbank_checking_val_t *)chk_record_0->Value();
+  smallbank_checking_val_t *chk_val_1 = (smallbank_checking_val_t *)chk_record_1->Value();
+  if (sav_val_0->magic != smallbank_savings_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
-  if (chk_val_0->magic != smallbank_checking_magic) {
+  if (chk_val_0->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
-  if (chk_val_1->magic != smallbank_checking_magic) {
+  if (chk_val_1->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
@@ -72,12 +78,13 @@ bool TxAmalgamate(SmallBank* smallbank_client,
   return commit_status;
 }
 
-/* Calculate the sum of saving and checking kBalance */
-bool TxBalance(SmallBank* smallbank_client,
-               uint64_t* seed,
-               coro_yield_t& yield,
+/* Calculate the sum of saving and checking kBalance of a single account */
+bool TxBalance(SmallBank *smallbank_client,
+               uint64_t *seed,
+               coro_yield_t &yield,
                tx_id_t tx_id,
-               TXN* txn) {
+               TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kROTxn, "balance");
 
   /* Transaction parameters */
@@ -101,15 +108,18 @@ bool TxBalance(SmallBank* smallbank_client,
                                                   UserOP::kRead);
   txn->AddToReadOnlySet(chk_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  smallbank_savings_val_t* sav_val = (smallbank_savings_val_t*)sav_record->Value();
-  smallbank_checking_val_t* chk_val = (smallbank_checking_val_t*)chk_record->Value();
-  if (sav_val->magic != smallbank_savings_magic) {
+  smallbank_savings_val_t *sav_val = (smallbank_savings_val_t *)sav_record->Value();
+  smallbank_checking_val_t *chk_val = (smallbank_checking_val_t *)chk_record->Value();
+  if (sav_val->magic != smallbank_savings_magic)
+  {
     RDMA_LOG(INFO) << "read value: " << sav_val;
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
-  if (chk_val->magic != smallbank_checking_magic) {
+  if (chk_val->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
@@ -117,12 +127,13 @@ bool TxBalance(SmallBank* smallbank_client,
   return commit_status;
 }
 
-/* Add $1.3 to acct_id's checking account */
-bool TxDepositChecking(SmallBank* smallbank_client,
-                       uint64_t* seed,
-                       coro_yield_t& yield,
+/* Add 1.3 dollars to acct_id's checking account */
+bool TxDepositChecking(SmallBank *smallbank_client,
+                       uint64_t *seed,
+                       coro_yield_t &yield,
                        tx_id_t tx_id,
-                       TXN* txn) {
+                       TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kRWTxn);
 
   /* Transaction parameters */
@@ -139,11 +150,13 @@ bool TxDepositChecking(SmallBank* smallbank_client,
                                                   UserOP::kUpdate);
   txn->AddToReadWriteSet(chk_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   /* If we are here, execution succeeded and we have a lock*/
-  smallbank_checking_val_t* chk_val = (smallbank_checking_val_t*)chk_record->Value();
-  if (chk_val->magic != smallbank_checking_magic) {
+  smallbank_checking_val_t *chk_val = (smallbank_checking_val_t *)chk_record->Value();
+  if (chk_val->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
@@ -155,11 +168,12 @@ bool TxDepositChecking(SmallBank* smallbank_client,
 }
 
 /* Send $5 from acct_id_0's checking account to acct_id_1's checking account */
-bool TxSendPayment(SmallBank* smallbank_client,
-                   uint64_t* seed,
-                   coro_yield_t& yield,
+bool TxSendPayment(SmallBank *smallbank_client,
+                   uint64_t *seed,
+                   coro_yield_t &yield,
                    tx_id_t tx_id,
-                   TXN* txn) {
+                   TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kRWTxn, "SendPayment");
 
   /* Transaction parameters: send money from acct_id_0 to acct_id_1 */
@@ -185,19 +199,23 @@ bool TxSendPayment(SmallBank* smallbank_client,
                                                     UserOP::kUpdate);
   txn->AddToReadWriteSet(chk_record_1);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   /* if we are here, execution succeeded and we have locks */
-  smallbank_checking_val_t* chk_val_0 = (smallbank_checking_val_t*)chk_record_0->Value();
-  smallbank_checking_val_t* chk_val_1 = (smallbank_checking_val_t*)chk_record_1->Value();
-  if (chk_val_0->magic != smallbank_checking_magic) {
+  smallbank_checking_val_t *chk_val_0 = (smallbank_checking_val_t *)chk_record_0->Value();
+  smallbank_checking_val_t *chk_val_1 = (smallbank_checking_val_t *)chk_record_1->Value();
+  if (chk_val_0->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
-  if (chk_val_1->magic != smallbank_checking_magic) {
+  if (chk_val_1->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
-  if (chk_val_0->bal < amount) {
+  if (chk_val_0->bal < amount)
+  {
     txn->TxAbortReadWrite();
     return false;
   }
@@ -213,11 +231,12 @@ bool TxSendPayment(SmallBank* smallbank_client,
 }
 
 /* Add $20 to acct_id's saving's account */
-bool TxTransactSaving(SmallBank* smallbank_client,
-                      uint64_t* seed,
-                      coro_yield_t& yield,
+bool TxTransactSaving(SmallBank *smallbank_client,
+                      uint64_t *seed,
+                      coro_yield_t &yield,
                       tx_id_t tx_id,
-                      TXN* txn) {
+                      TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kRWTxn);
 
   /* Transaction parameters */
@@ -234,11 +253,13 @@ bool TxTransactSaving(SmallBank* smallbank_client,
                                                   UserOP::kUpdate);
   txn->AddToReadWriteSet(sav_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
   /* If we are here, execution succeeded and we have a lock */
-  smallbank_savings_val_t* sav_val = (smallbank_savings_val_t*)sav_record->Value();
-  if (sav_val->magic != smallbank_savings_magic) {
+  smallbank_savings_val_t *sav_val = (smallbank_savings_val_t *)sav_record->Value();
+  if (sav_val->magic != smallbank_savings_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
@@ -250,11 +271,12 @@ bool TxTransactSaving(SmallBank* smallbank_client,
 }
 
 /* Read saving and checking kBalance + update checking kBalance unconditionally */
-bool TxWriteCheck(SmallBank* smallbank_client,
-                  uint64_t* seed,
-                  coro_yield_t& yield,
+bool TxWriteCheck(SmallBank *smallbank_client,
+                  uint64_t *seed,
+                  coro_yield_t &yield,
                   tx_id_t tx_id,
-                  TXN* txn) {
+                  TXN *txn)
+{
   txn->Begin(tx_id, TXN_TYPE::kRWTxn);
 
   /* Transaction parameters */
@@ -279,23 +301,29 @@ bool TxWriteCheck(SmallBank* smallbank_client,
                                                   UserOP::kUpdate);
   txn->AddToReadWriteSet(chk_record);
 
-  if (!txn->Execute(yield)) return false;
+  if (!txn->Execute(yield))
+    return false;
 
-  smallbank_savings_val_t* sav_val = (smallbank_savings_val_t*)sav_record->Value();
-  smallbank_checking_val_t* chk_val = (smallbank_checking_val_t*)chk_record->Value();
-  if (sav_val->magic != smallbank_savings_magic) {
+  smallbank_savings_val_t *sav_val = (smallbank_savings_val_t *)sav_record->Value();
+  smallbank_checking_val_t *chk_val = (smallbank_checking_val_t *)chk_record->Value();
+  if (sav_val->magic != smallbank_savings_magic)
+  {
     RDMA_LOG(INFO) << "read value: " << sav_val;
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
-  if (chk_val->magic != smallbank_checking_magic) {
+  if (chk_val->magic != smallbank_checking_magic)
+  {
     RDMA_LOG(FATAL) << "[FATAL] Read unmatch, tid-cid-txid: " << txn->t_id << "-" << txn->coro_id << "-" << tx_id;
   }
 
   chk_record->SetUpdate(smallbank_checking_val_bitmap::cbal, &chk_val->bal, sizeof(chk_val->bal));
 
-  if (sav_val->bal + chk_val->bal < amount) {
+  if (sav_val->bal + chk_val->bal < amount)
+  {
     chk_val->bal -= (amount + 1);
-  } else {
+  }
+  else
+  {
     chk_val->bal -= amount;
   }
 

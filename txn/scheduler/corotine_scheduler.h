@@ -13,113 +13,125 @@
 using namespace rdmaio;
 
 // Scheduling coroutines. Each txn thread only has ONE scheduler
-class CoroutineScheduler {
- public:
+class CoroutineScheduler
+{
+public:
   // The coro_num includes all the coroutines
-  CoroutineScheduler(t_id_t thread_id, coro_id_t coro_num) {
+  CoroutineScheduler(t_id_t thread_id, coro_id_t coro_num)
+  {
     t_id = thread_id;
     pending_counts = new int[coro_num];
-    for (coro_id_t c = 0; c < coro_num; c++) {
+    for (coro_id_t c = 0; c < coro_num; c++)
+    {
       pending_counts[c] = 0;
     }
     coro_array = new Coroutine[coro_num];
   }
 
-  ~CoroutineScheduler() {
-    if (pending_counts) {
+  ~CoroutineScheduler()
+  {
+    if (pending_counts)
+    {
       delete[] pending_counts;
     }
 
-    if (coro_array) {
+    if (coro_array)
+    {
       delete[] coro_array;
     }
   }
 
   // For RDMA requests
-  void AddPendingQP(coro_id_t coro_id, RCQP* qp);
+  void AddPendingQP(coro_id_t coro_id, RCQP *qp);
 
-  void AddPendingLogQP(coro_id_t coro_id, RCQP* qp);
+  void AddPendingLogQP(coro_id_t coro_id, RCQP *qp);
 
-  void RDMABatch(coro_id_t coro_id, RCQP* qp, ibv_send_wr* send_sr, ibv_send_wr** bad_sr_addr, int piggyback_num);
+  void RDMABatch(coro_id_t coro_id, RCQP *qp, ibv_send_wr *send_sr, ibv_send_wr **bad_sr_addr, int piggyback_num);
 
-  bool RDMABatchSync(coro_id_t coro_id, RCQP* qp, ibv_send_wr* send_sr, ibv_send_wr** bad_sr_addr, int piggyback_num);
+  bool RDMABatchSync(coro_id_t coro_id, RCQP *qp, ibv_send_wr *send_sr, ibv_send_wr **bad_sr_addr, int piggyback_num);
 
-  bool RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, uint64_t remote_offset, size_t size);
+  bool RDMAWrite(coro_id_t coro_id, RCQP *qp, char *wt_data, uint64_t remote_offset, size_t size);
 
-  bool RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, uint64_t remote_offset, size_t size, MemoryAttr& local_mr, MemoryAttr& remote_mr);
+  bool RDMAWrite(coro_id_t coro_id, RCQP *qp, char *wt_data, uint64_t remote_offset, size_t size, MemoryAttr &local_mr, MemoryAttr &remote_mr);
 
-  void RDMARead(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size);
+  void RDMARead(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size);
 
-  bool RDMARead(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size, MemoryAttr& local_mr, MemoryAttr& remote_mr);
+  bool RDMARead(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size, MemoryAttr &local_mr, MemoryAttr &remote_mr);
 
-  bool RDMAReadInv(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size);
+  bool RDMAReadInv(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size);
 
-  bool RDMAReadSync(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size);
+  bool RDMAReadSync(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size);
 
-  bool RDMACAS(coro_id_t coro_id, RCQP* qp, char* local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap);
+  bool RDMACAS(coro_id_t coro_id, RCQP *qp, char *local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap);
 
-  bool RDMAMaskedCAS(coro_id_t coro_id, RCQP* qp, char* local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap, uint64_t compare_mask, uint64_t swap_mask);
+  bool RDMAMaskedCAS(coro_id_t coro_id, RCQP *qp, char *local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap, uint64_t compare_mask, uint64_t swap_mask);
 
   // For polling
-  void PollCompletion(t_id_t tid);  // There is a coroutine polling ACKs
+  void PollCompletion(t_id_t tid); // There is a coroutine polling ACKs
 
   // Link coroutines in a loop manner
   void LoopLinkCoroutine(coro_id_t coro_num);
 
   // For coroutine yield, used by transactions
-  void Yield(coro_yield_t& yield, coro_id_t cid);
+  void Yield(coro_yield_t &yield, coro_id_t cid);
 
   // Append this coroutine to the tail of the yield-able coroutine list
   // Used by coroutine 0
-  void AppendCoroutine(Coroutine* coro);
+  void AppendCoroutine(Coroutine *coro);
 
   // Start this coroutine. Used by coroutine 0
-  void RunCoroutine(coro_yield_t& yield, Coroutine* coro);
+  void RunCoroutine(coro_yield_t &yield, Coroutine *coro);
 
- public:
-  Coroutine* coro_array;
+public:
+  Coroutine *coro_array;
 
-  Coroutine* coro_head;
+  Coroutine *coro_head;
 
-  Coroutine* coro_tail;
+  Coroutine *coro_tail;
 
- private:
+private:
   t_id_t t_id;
 
-  std::list<RCQP*> pending_qps;
+  std::list<RCQP *> pending_qps;
 
   // number of pending qps (i.e., the ack has not received) per coroutine
-  int* pending_counts;
+  int *pending_counts;
 };
 
 ALWAYS_INLINE
-void CoroutineScheduler::AddPendingQP(coro_id_t coro_id, RCQP* qp) {
+void CoroutineScheduler::AddPendingQP(coro_id_t coro_id, RCQP *qp)
+{
   pending_qps.push_back(qp);
   pending_counts[coro_id] += 1;
 }
 
 ALWAYS_INLINE
-void CoroutineScheduler::RDMABatch(coro_id_t coro_id, RCQP* qp, ibv_send_wr* send_sr, ibv_send_wr** bad_sr_addr, int piggyback_num) {
+void CoroutineScheduler::RDMABatch(coro_id_t coro_id, RCQP *qp, ibv_send_wr *send_sr, ibv_send_wr **bad_sr_addr, int piggyback_num)
+{
   // piggyback_num should be 1 less than the total number of batched reqs
   send_sr[piggyback_num].wr_id = coro_id;
   auto rc = qp->post_batch(send_sr, bad_sr_addr);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(FATAL) << "client: post batch fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
   }
   AddPendingQP(coro_id, qp);
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMABatchSync(coro_id_t coro_id, RCQP* qp, ibv_send_wr* send_sr, ibv_send_wr** bad_sr_addr, int piggyback_num) {
+bool CoroutineScheduler::RDMABatchSync(coro_id_t coro_id, RCQP *qp, ibv_send_wr *send_sr, ibv_send_wr **bad_sr_addr, int piggyback_num)
+{
   send_sr[piggyback_num].wr_id = coro_id;
   auto rc = qp->post_batch(send_sr, bad_sr_addr);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post batch fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
   ibv_wc wc{};
   rc = qp->poll_till_completion(wc, no_timeout);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: poll batch fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -127,9 +139,11 @@ bool CoroutineScheduler::RDMABatchSync(coro_id_t coro_id, RCQP* qp, ibv_send_wr*
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, uint64_t remote_offset, size_t size) {
+bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP *qp, char *wt_data, uint64_t remote_offset, size_t size)
+{
   auto rc = qp->post_send(IBV_WR_RDMA_WRITE, wt_data, size, remote_offset, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post write fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -138,9 +152,11 @@ bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, u
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, uint64_t remote_offset, size_t size, MemoryAttr& local_mr, MemoryAttr& remote_mr) {
+bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP *qp, char *wt_data, uint64_t remote_offset, size_t size, MemoryAttr &local_mr, MemoryAttr &remote_mr)
+{
   auto rc = qp->post_send_to_mr(local_mr, remote_mr, IBV_WR_RDMA_WRITE, wt_data, size, remote_offset, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post write fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -149,18 +165,22 @@ bool CoroutineScheduler::RDMAWrite(coro_id_t coro_id, RCQP* qp, char* wt_data, u
 }
 
 ALWAYS_INLINE
-void CoroutineScheduler::RDMARead(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size) {
+void CoroutineScheduler::RDMARead(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size)
+{
   auto rc = qp->post_send(IBV_WR_RDMA_READ, rd_data, size, remote_offset, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(FATAL) << "client: post read fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
   }
   AddPendingQP(coro_id, qp);
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMARead(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size, MemoryAttr& local_mr, MemoryAttr& remote_mr) {
+bool CoroutineScheduler::RDMARead(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size, MemoryAttr &local_mr, MemoryAttr &remote_mr)
+{
   auto rc = qp->post_send_to_mr(local_mr, remote_mr, IBV_WR_RDMA_READ, rd_data, size, remote_offset, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post read fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -169,9 +189,11 @@ bool CoroutineScheduler::RDMARead(coro_id_t coro_id, RCQP* qp, char* rd_data, ui
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMAReadInv(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size) {
+bool CoroutineScheduler::RDMAReadInv(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size)
+{
   auto rc = qp->post_send(IBV_WR_RDMA_READ, rd_data, size, remote_offset, 0, 0);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post read fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -179,15 +201,18 @@ bool CoroutineScheduler::RDMAReadInv(coro_id_t coro_id, RCQP* qp, char* rd_data,
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMAReadSync(coro_id_t coro_id, RCQP* qp, char* rd_data, uint64_t remote_offset, size_t size) {
+bool CoroutineScheduler::RDMAReadSync(coro_id_t coro_id, RCQP *qp, char *rd_data, uint64_t remote_offset, size_t size)
+{
   auto rc = qp->post_send(IBV_WR_RDMA_READ, rd_data, size, remote_offset, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post read fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
   ibv_wc wc{};
   rc = qp->poll_till_completion(wc, no_timeout);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: poll read fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -195,9 +220,11 @@ bool CoroutineScheduler::RDMAReadSync(coro_id_t coro_id, RCQP* qp, char* rd_data
 }
 
 ALWAYS_INLINE
-bool CoroutineScheduler::RDMACAS(coro_id_t coro_id, RCQP* qp, char* local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap) {
+bool CoroutineScheduler::RDMACAS(coro_id_t coro_id, RCQP *qp, char *local_buf, uint64_t remote_offset, uint64_t compare, uint64_t swap)
+{
   auto rc = qp->post_cas(local_buf, remote_offset, compare, swap, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post cas fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -207,15 +234,17 @@ bool CoroutineScheduler::RDMACAS(coro_id_t coro_id, RCQP* qp, char* local_buf, u
 
 ALWAYS_INLINE
 bool CoroutineScheduler::RDMAMaskedCAS(coro_id_t coro_id,
-                                       RCQP* qp,
-                                       char* local_buf,
+                                       RCQP *qp,
+                                       char *local_buf,
                                        uint64_t remote_offset,
                                        uint64_t compare,
                                        uint64_t swap,
                                        uint64_t compare_mask,
-                                       uint64_t swap_mask) {
+                                       uint64_t swap_mask)
+{
   auto rc = qp->post_masked_cas(local_buf, remote_offset, compare, swap, compare_mask, swap_mask, IBV_SEND_SIGNALED, coro_id);
-  if (rc != SUCC) {
+  if (rc != SUCC)
+  {
     RDMA_LOG(ERROR) << "client: post cas fail. rc=" << rc << ", tid = " << t_id << ", coroid = " << coro_id;
     return false;
   }
@@ -225,10 +254,12 @@ bool CoroutineScheduler::RDMAMaskedCAS(coro_id_t coro_id,
 
 // Link coroutines in a loop manner
 ALWAYS_INLINE
-void CoroutineScheduler::LoopLinkCoroutine(coro_id_t coro_num) {
+void CoroutineScheduler::LoopLinkCoroutine(coro_id_t coro_num)
+{
   // The coroutines are maintained in an array,
   // but linked via pointers for efficient yield scheduling
-  for (uint i = 0; i < coro_num; ++i) {
+  for (uint i = 0; i < coro_num; ++i)
+  {
     coro_array[i].prev_coro = coro_array + i - 1;
     coro_array[i].next_coro = coro_array + i + 1;
   }
@@ -240,17 +271,20 @@ void CoroutineScheduler::LoopLinkCoroutine(coro_id_t coro_num) {
 
 // For coroutine yield, used by transactions
 ALWAYS_INLINE
-void CoroutineScheduler::Yield(coro_yield_t& yield, coro_id_t cid) {
-  if (unlikely(pending_counts[cid] == 0)) {
+void CoroutineScheduler::Yield(coro_yield_t &yield, coro_id_t cid)
+{
+  if (unlikely(pending_counts[cid] == 0))
+  {
     return;
   }
   // 1. Remove this coroutine from the yield-able coroutine list
-  Coroutine* coro = &coro_array[cid];
+  Coroutine *coro = &coro_array[cid];
   assert(coro->is_wait_poll == false);
-  Coroutine* next = coro->next_coro;
+  Coroutine *next = coro->next_coro;
   coro->prev_coro->next_coro = next;
   next->prev_coro = coro->prev_coro;
-  if (coro_tail == coro) coro_tail = coro->prev_coro;
+  if (coro_tail == coro)
+    coro_tail = coro->prev_coro;
   coro->is_wait_poll = true;
   // 2. Yield to the next coroutine
   // RDMA_LOG(DBG) << "coro: " << cid << " yields to coro " << next->coro_id;
@@ -259,7 +293,8 @@ void CoroutineScheduler::Yield(coro_yield_t& yield, coro_id_t cid) {
 
 // Start this coroutine. Used by coroutine 0 and Yield()
 ALWAYS_INLINE
-void CoroutineScheduler::RunCoroutine(coro_yield_t& yield, Coroutine* coro) {
+void CoroutineScheduler::RunCoroutine(coro_yield_t &yield, Coroutine *coro)
+{
   // RDMA_LOG(DBG) << "yield to coro: " << coro->coro_id;
   coro->is_wait_poll = false;
   yield(coro->func);
@@ -267,9 +302,11 @@ void CoroutineScheduler::RunCoroutine(coro_yield_t& yield, Coroutine* coro) {
 
 // Append this coroutine to the tail of the yield-able coroutine list. Used by coroutine 0
 ALWAYS_INLINE
-void CoroutineScheduler::AppendCoroutine(Coroutine* coro) {
-  if (!coro->is_wait_poll) return;
-  Coroutine* prev = coro_tail;
+void CoroutineScheduler::AppendCoroutine(Coroutine *coro)
+{
+  if (!coro->is_wait_poll)
+    return;
+  Coroutine *prev = coro_tail;
   prev->next_coro = coro;
   coro_tail = coro;
   coro_tail->next_coro = coro_head;
@@ -277,30 +314,39 @@ void CoroutineScheduler::AppendCoroutine(Coroutine* coro) {
 }
 
 ALWAYS_INLINE
-void CoroutineScheduler::PollCompletion(t_id_t tid) {
-  for (auto it = pending_qps.begin(); it != pending_qps.end();) {
-    RCQP* qp = *it;
+void CoroutineScheduler::PollCompletion(t_id_t tid)
+{
+  for (auto it = pending_qps.begin(); it != pending_qps.end();)
+  {
+    RCQP *qp = *it;
     struct ibv_wc wc;
-    auto poll_result = qp->poll_send_completion(wc);  // The qp polls its own wc
-    if (poll_result == 0) {
+    auto poll_result = qp->poll_send_completion(wc); // The qp polls its own wc
+    if (poll_result == 0)
+    {
       it++;
       continue;
     }
-    if (unlikely(wc.status != IBV_WC_SUCCESS)) {
+    if (unlikely(wc.status != IBV_WC_SUCCESS))
+    {
       TLOG(INFO, tid) << "Bad completion status: " << wc.status << " with error " << ibv_wc_status_str(wc.status) << ";@ node " << qp->idx_.node_id;
-      if (wc.status != IBV_WC_RETRY_EXC_ERR) {
+      if (wc.status != IBV_WC_RETRY_EXC_ERR)
+      {
         TLOG(INFO, tid) << "completion status != IBV_WC_RETRY_EXC_ERR. abort()";
         abort();
-      } else {
+      }
+      else
+      {
         it++;
         continue;
       }
     }
     auto coro_id = wc.wr_id;
-    if (coro_id == 0) continue;
+    if (coro_id == 0)
+      continue;
     assert(pending_counts[coro_id] > 0);
     pending_counts[coro_id] -= 1;
-    if (pending_counts[coro_id] == 0) {
+    if (pending_counts[coro_id] == 0)
+    {
       AppendCoroutine(&coro_array[coro_id]);
     }
     it = pending_qps.erase(it);

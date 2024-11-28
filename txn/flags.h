@@ -27,7 +27,7 @@
 #define MAX_VCELL_NUM 4
 
 #elif WORKLOAD_YCSB
-#define MAX_VALUE_SIZE 110
+#define MAX_VALUE_SIZE 120
 #define MAX_VCELL_NUM 4
 #endif
 

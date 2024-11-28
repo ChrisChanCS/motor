@@ -1,13 +1,13 @@
 {
     "ycsb": {
         "query": 50000,
-        "partition_num": 16,
+        "partition_num": 8,
         "comment": "readWriteRatio, readOnlyTransaction, crossPartitionProbability are out of 100; nop_prob is out of 10000",
-"readWriteRatio": 90,
+"readWriteRatio": 0,
 "readOnlyTransaction": 0,
-"crossPartitionProbability": 90,
-"is_skewed": false,
-        "zipf_theta": 0.99,
+"crossPartitionProbability": 0,
+        "is_skewed": true,
+"zipf_theta": 0.7,
         "keysPerPartition": 40960,
         "lotus_sp_parallel_exec_commit": false,
         "crossPartitionPartNum": 2,

@@ -10,24 +10,32 @@
 #include "util/fast_random.h"
 #include "util/json_config.h"
 
-class SmallBank {
- public:
+class SmallBank
+{
+public:
   std::string bench_name;
 
-  uint32_t num_accounts_global, num_hot_global;
+  // remote transaction ratio
+  uint32_t remote_ratio;
+
+  uint64_t num_partitions;
+
+  uint32_t num_accounts_global,
+      num_hot_global;
 
   /* Tables */
-  HashStore* savings_table;
+  HashStore *savings_table;
 
-  HashStore* checking_table;
+  HashStore *checking_table;
 
-  std::vector<HashStore*> primary_table_ptrs;
+  std::vector<HashStore *> primary_table_ptrs;
 
-  std::vector<HashStore*> backup_table_ptrs;
+  std::vector<HashStore *> backup_table_ptrs;
 
   // For server usage: Provide interfaces to servers for loading tables
   // Also for client usage: Provide interfaces to clients for generating ids during tests
-  SmallBank() {
+  SmallBank()
+  {
     bench_name = "SmallBank";
     // Used for populate table (line num) and get account
     std::string config_filepath = "../../../config/smallbank_config.json";
@@ -43,33 +51,43 @@ class SmallBank {
     checking_table = nullptr;
   }
 
-  ~SmallBank() {
-    if (savings_table) delete savings_table;
-    if (checking_table) delete checking_table;
+  ~SmallBank()
+  {
+    if (savings_table)
+      delete savings_table;
+    if (checking_table)
+      delete checking_table;
   }
 
-  SmallBankTxType* CreateWorkgenArray() {
-    SmallBankTxType* workgen_arr = new SmallBankTxType[100];
+  SmallBankTxType *CreateWorkgenArray()
+  {
+    SmallBankTxType *workgen_arr = new SmallBankTxType[100];
 
     int i = 0, j = 0;
 
     j += FREQUENCY_AMALGAMATE;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kAmalgamate;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kAmalgamate;
 
     j += FREQUENCY_BALANCE;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kBalance;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kBalance;
 
     j += FREQUENCY_DEPOSIT_CHECKING;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kDepositChecking;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kDepositChecking;
 
     j += FREQUENCY_SEND_PAYMENT;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kSendPayment;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kSendPayment;
 
     j += FREQUENCY_TRANSACT_SAVINGS;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kTransactSaving;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kTransactSaving;
 
     j += FREQUENCY_WRITE_CHECK;
-    for (; i < j; i++) workgen_arr[i] = SmallBankTxType::kWriteCheck;
+    for (; i < j; i++)
+      workgen_arr[i] = SmallBankTxType::kWriteCheck;
 
     assert(i == 100 && j == 100);
     return workgen_arr;
@@ -79,56 +97,116 @@ class SmallBank {
    * Generators for new account IDs. Called once per transaction because
    * we need to decide hot-or-not per transaction, not per account.
    */
-  inline void get_account(uint64_t* seed, uint64_t* acct_id) const {
-    if (FastRand(seed) % 100 < TX_HOT) {
+  inline void get_account(uint64_t *seed, uint64_t *acct_id) const
+  {
+    if (FastRand(seed) % 100 < TX_HOT)
+    {
       *acct_id = FastRand(seed) % num_hot_global;
-    } else {
+    }
+    else
+    {
       *acct_id = FastRand(seed) % num_accounts_global;
     }
   }
 
-  inline void get_two_accounts(uint64_t* seed, uint64_t* acct_id_0, uint64_t* acct_id_1) const {
-    if (FastRand(seed) % 100 < TX_HOT) {
-      *acct_id_0 = FastRand(seed) % num_hot_global;
-      *acct_id_1 = FastRand(seed) % num_hot_global;
-      while (*acct_id_1 == *acct_id_0) {
-        *acct_id_1 = FastRand(seed) % num_hot_global;
-      }
-    } else {
-      *acct_id_0 = FastRand(seed) % num_accounts_global;
-      *acct_id_1 = FastRand(seed) % num_accounts_global;
-      while (*acct_id_1 == *acct_id_0) {
-        *acct_id_1 = FastRand(seed) % num_accounts_global;
-      }
+  inline void get_two_accounts(uint64_t *seed, uint64_t *acct_id_0, uint64_t *acct_id_1) const
+  {
+    uint64_t partitionId[2];
+    // remote or local
+    uint64_t localId = FastRand(seed) % num_partitions;
+    partitionId[0] = localId;
+    uint32_t remote = FastRand(seed) % 100;
+    if (remote < remote_ratio)
+    {
+      do
+      {
+        uint64_t tmp = FastRand(seed) % num_partitions;
+        if (tmp != localId)
+        {
+          partitionId[1] = tmp;
+          break;
+        }
+      } while (true);
+    }
+    else
+    {
+      partitionId[1] = localId;
+    }
+
+    if (FastRand(seed) % 100 < TX_HOT)
+    {
+      // evenly distribute hot_key and key to partitions
+      // hot_key is first in each partition
+      itemkey_t final_key[2];
+      itemkey_t pre_key = FastRand(seed) % (num_hot_global / num_partitions);
+      final_key[0] = partitionId[0] * (num_accounts_global / num_partitions) + pre_key;
+      do
+      {
+        pre_key = FastRand(seed) % (num_hot_global / num_partitions);
+        final_key[1] = partitionId[1] * (num_accounts_global / num_partitions) + pre_key;
+      } while (final_key[1] == final_key[0]);
+      *acct_id_0 = final_key[0];
+      *acct_id_1 = final_key[1];
+      /*
+            *acct_id_0 = FastRand(seed) % num_hot_global;
+            *acct_id_1 = FastRand(seed) % num_hot_global;
+            while (*acct_id_1 == *acct_id_0)
+            {
+              *acct_id_1 = FastRand(seed) % num_hot_global;
+            }
+      */
+    }
+    else
+    {
+      itemkey_t final_key[2];
+      itemkey_t pre_key = FastRand(seed) % (num_accounts_global / num_partitions);
+      final_key[0] = partitionId[0] * (num_accounts_global / num_partitions) + pre_key;
+      do
+      {
+        pre_key = FastRand(seed) % (num_accounts_global / num_partitions);
+        final_key[1] = partitionId[1] * (num_accounts_global / num_partitions) + pre_key;
+      } while (final_key[1] == final_key[0]);
+      *acct_id_0 = final_key[0];
+      *acct_id_1 = final_key[1];
+      /*
+            *acct_id_0 = FastRand(seed) % num_accounts_global;
+            *acct_id_1 = FastRand(seed) % num_accounts_global;
+            while (*acct_id_1 == *acct_id_0)
+            {
+              *acct_id_1 = FastRand(seed) % num_accounts_global;
+            }
+      */
     }
   }
 
   void LoadTable(node_id_t node_id,
                  node_id_t num_server,
-                 MemStoreAllocParam* mem_store_alloc_param,
-                 size_t& total_size,
-                 size_t& ht_loadfv_size,
-                 size_t& ht_size,
-                 size_t& initfv_size,
-                 size_t& real_cvt_size);
+                 MemStoreAllocParam *mem_store_alloc_param,
+                 size_t &total_size,
+                 size_t &ht_loadfv_size,
+                 size_t &ht_size,
+                 size_t &initfv_size,
+                 size_t &real_cvt_size);
 
   void PopulateSavingsTable();
 
   void PopulateCheckingTable();
 
-  void LoadRecord(HashStore* table,
+  void LoadRecord(HashStore *table,
                   itemkey_t item_key,
-                  void* val_ptr,
+                  void *val_ptr,
                   size_t val_size,
                   table_id_t table_id);
 
   ALWAYS_INLINE
-  std::vector<HashStore*> GetPrimaryHashStore() {
+  std::vector<HashStore *> GetPrimaryHashStore()
+  {
     return primary_table_ptrs;
   }
 
   ALWAYS_INLINE
-  std::vector<HashStore*> GetBackupHashStore() {
+  std::vector<HashStore *> GetBackupHashStore()
+  {
     return backup_table_ptrs;
   }
 };

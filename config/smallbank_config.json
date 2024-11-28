@@ -1,7 +1,9 @@
 {
   "smallbank": {
-    "num_accounts": 10000000,
-    "num_hot_accounts": 400000,
+    "remote_ratio": 10,
+    "num_accounts": 1000000,
+    "num_hot_accounts": 40000,
+    "num_partitions": 8,
     "attempted_num": 1000000
   }
 }

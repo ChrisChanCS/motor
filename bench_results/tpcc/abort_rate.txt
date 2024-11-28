@@ -264,3 +264,409 @@ Delivery 56091 56014 0.00137277
 OrderStatus 56076 56076 0
 StockLevel 56681 55983 0.0123145
 
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 13740 0.984737
+Payment 859581 221122 0.742756
+Delivery 80219 80090 0.0016081
+OrderStatus 80113 80112 1.24824e-05
+StockLevel 80118 79806 0.00389426
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 8568 0.990483
+Payment 859581 103991 0.879021
+Delivery 80219 80085 0.00167043
+OrderStatus 80113 80110 3.74471e-05
+StockLevel 79961 79806 0.00193844
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7649 0.991503
+Payment 859581 99328 0.884446
+Delivery 80219 80088 0.00163303
+OrderStatus 80113 80113 0
+StockLevel 80877 79807 0.01323
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7851 0.991279
+Payment 859581 103037 0.880131
+Delivery 80219 80101 0.00147097
+OrderStatus 80113 80113 0
+StockLevel 80761 79806 0.011825
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 9864 0.989043
+Payment 859581 122147 0.857899
+Delivery 80219 80095 0.00154577
+OrderStatus 80113 80113 0
+StockLevel 79972 79809 0.00203821
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 8678 0.99036
+Payment 859581 102553 0.880694
+Delivery 80219 80099 0.0014959
+OrderStatus 80113 80113 0
+StockLevel 79958 79805 0.0019135
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7664 0.991487
+Payment 859581 84379 0.901837
+Delivery 80219 80108 0.00138371
+OrderStatus 80113 80113 0
+StockLevel 79937 79807 0.00162628
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 8974 0.990032
+Payment 859581 110167 0.871836
+Delivery 80219 80094 0.00155823
+OrderStatus 80113 80112 1.24824e-05
+StockLevel 79960 79808 0.00190095
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 6456 0.992829
+Payment 859581 72038 0.916194
+Delivery 80219 80079 0.00174522
+OrderStatus 80113 80113 0
+StockLevel 79917 79806 0.00138894
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7132 0.992078
+Payment 859581 75956 0.911636
+Delivery 80219 80111 0.00134631
+OrderStatus 80113 80113 0
+StockLevel 79923 79806 0.00146391
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7899 0.991226
+Payment 859581 97144 0.886987
+Delivery 80219 80086 0.00165796
+OrderStatus 80113 80112 1.24824e-05
+StockLevel 79953 79808 0.00181357
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 26480 0.958015
+Payment 601123 153246 0.745067
+Delivery 56091 56003 0.00156888
+OrderStatus 56076 56076 0
+StockLevel 56147 55977 0.00302777
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 38419 0.939086
+Payment 601123 253130 0.578905
+Delivery 56091 55997 0.00167585
+OrderStatus 56076 56075 1.78329e-05
+StockLevel 56229 55977 0.00448167
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 24908 0.960508
+Payment 601123 160845 0.732426
+Delivery 56091 56024 0.00119449
+OrderStatus 56076 56076 0
+StockLevel 56148 55978 0.00302771
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 20124 0.968093
+Payment 601123 114975 0.808733
+Delivery 56091 56002 0.00158671
+OrderStatus 56076 56076 0
+StockLevel 56091 55979 0.00199676
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 21027 0.966661
+Payment 601123 134513 0.77623
+Delivery 56091 56014 0.00137277
+OrderStatus 56076 56076 0
+StockLevel 56121 55978 0.00254807
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 16469 0.973888
+Payment 601123 87777 0.853978
+Delivery 56091 56003 0.00156888
+OrderStatus 56076 56076 0
+StockLevel 56071 55976 0.00169428
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 25376 0.959766
+Payment 601123 144058 0.760352
+Delivery 56091 56014 0.00137277
+OrderStatus 56076 56076 0
+StockLevel 56148 55978 0.00302771
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 24876 0.960559
+Payment 601123 147536 0.754566
+Delivery 56091 56005 0.00153322
+OrderStatus 56076 56076 0
+StockLevel 56701 55976 0.0127864
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 14920 0.976344
+Payment 601123 87792 0.853953
+Delivery 56091 56007 0.00149757
+OrderStatus 56076 56074 3.56659e-05
+StockLevel 56071 55976 0.00169428
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 630707 15442 0.975516
+Payment 601123 83933 0.860373
+Delivery 56091 56008 0.00147974
+OrderStatus 56076 56076 0
+StockLevel 56723 55975 0.0131869
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 11789 0.983639
+Payment 687188 95645 0.860817
+Delivery 64168 64085 0.00129348
+OrderStatus 64153 64152 1.55877e-05
+StockLevel 64027 63911 0.00181174
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 16821 0.976655
+Payment 687188 137676 0.799653
+Delivery 64168 64077 0.00141815
+OrderStatus 64153 64151 3.11755e-05
+StockLevel 64068 63910 0.00246613
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 19772 0.97256
+Payment 687188 155642 0.773509
+Delivery 64168 64067 0.00157399
+OrderStatus 64153 64153 0
+StockLevel 64112 63912 0.00311954
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 14823 0.979428
+Payment 687188 102654 0.850617
+Delivery 64168 64055 0.001761
+OrderStatus 64153 64153 0
+StockLevel 64063 63911 0.00237266
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 18898 0.973773
+Payment 687188 142542 0.792572
+Delivery 64168 64073 0.00148049
+OrderStatus 64153 64153 0
+StockLevel 64073 63910 0.00254397
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 15462 0.978541
+Payment 687188 111019 0.838445
+Delivery 64168 64083 0.00132465
+OrderStatus 64153 64153 0
+StockLevel 64045 63910 0.00210789
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 720550 17017 0.976383
+Payment 687188 133830 0.80525
+Delivery 64168 64078 0.00140257
+OrderStatus 64153 64153 0
+StockLevel 64056 63909 0.00229487
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 16446 0.979714
+Payment 773173 159312 0.79395
+Delivery 72093 72002 0.00126226
+OrderStatus 72097 72097 0
+StockLevel 72087 71900 0.00259409
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 10311 0.987281
+Payment 773173 91488 0.881672
+Delivery 72093 71969 0.00172
+OrderStatus 72097 72096 1.38702e-05
+StockLevel 72020 71899 0.00168009
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 13114 0.983824
+Payment 773173 122603 0.841429
+Delivery 72093 71979 0.00158129
+OrderStatus 72097 72097 0
+StockLevel 72064 71902 0.002248
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 8834 0.989103
+Payment 773173 81772 0.894238
+Delivery 72093 71987 0.00147032
+OrderStatus 72097 72097 0
+StockLevel 72008 71901 0.00148595
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 13604 0.98322
+Payment 773173 143782 0.814036
+Delivery 72093 71994 0.00137323
+OrderStatus 72097 72095 2.77404e-05
+StockLevel 72071 71901 0.00235879
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 15665 0.980677
+Payment 773173 162517 0.789805
+Delivery 72093 71975 0.00163677
+OrderStatus 72097 72097 0
+StockLevel 72105 71902 0.00281534
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 810703 11224 0.986155
+Payment 773173 109088 0.858909
+Delivery 72093 71987 0.00147032
+OrderStatus 72097 72097 0
+StockLevel 72051 71900 0.00209574
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7668 0.991482
+Payment 859581 95998 0.88832
+Delivery 80219 80111 0.00134631
+OrderStatus 80113 80111 2.49647e-05
+StockLevel 79954 79806 0.00185106
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 7877 0.99125
+Payment 859581 108095 0.874247
+Delivery 80219 80103 0.00144604
+OrderStatus 80113 80113 0
+StockLevel 79944 79808 0.00170119
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 11029 0.987749
+Payment 859581 141337 0.835575
+Delivery 80219 80093 0.0015707
+OrderStatus 80113 80113 0
+StockLevel 79993 79807 0.0023252
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 9026 0.989974
+Payment 859581 110862 0.871028
+Delivery 80219 80106 0.00140864
+OrderStatus 80113 80112 1.24824e-05
+StockLevel 79975 79806 0.00211316
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 9917 0.988984
+Payment 859581 133643 0.844525
+Delivery 80219 80098 0.00150837
+OrderStatus 80113 80113 0
+StockLevel 79975 79808 0.00208815
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 8685 0.990353
+Payment 859581 101472 0.881952
+Delivery 80219 80112 0.00133385
+OrderStatus 80113 80113 0
+StockLevel 79930 79805 0.00156387
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 6896 0.99234
+Payment 859581 79984 0.90695
+Delivery 80219 80098 0.00150837
+OrderStatus 80113 80113 0
+StockLevel 79941 79807 0.00167624
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 22571 21819 0.0333171
+Payment 21381 21228 0.00715589
+Delivery 2021 2020 0.000494805
+OrderStatus 1997 1997 0
+StockLevel 2030 2030 0
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 45068 40519 0.100936
+Payment 42901 42114 0.0183446
+Delivery 4025 4024 0.000248447
+OrderStatus 3986 3986 0
+StockLevel 4023 4020 0.000745712
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 90277 70121 0.223268
+Payment 85887 81892 0.0465146
+Delivery 7903 7887 0.00202455
+OrderStatus 7950 7950 0
+StockLevel 7997 7979 0.00225084
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 135171 87618 0.351799
+Payment 128954 118720 0.0793616
+Delivery 12012 11995 0.00141525
+OrderStatus 12004 12004 0
+StockLevel 11908 11853 0.00461874
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 180161 87690 0.513269
+Payment 171750 134935 0.214352
+Delivery 16180 16164 0.000988875
+OrderStatus 15975 15975 0
+StockLevel 16002 15927 0.00468691
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 225337 99062 0.560383
+Payment 214528 171372 0.201167
+Delivery 20190 20161 0.00143635
+OrderStatus 19981 19981 0
+StockLevel 20056 19957 0.00493618
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 270505 101750 0.623852
+Payment 257398 197692 0.23196
+Delivery 24252 24214 0.00156688
+OrderStatus 23937 23937 0
+StockLevel 24265 23899 0.0150835
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 315554 83282 0.736077
+Payment 300173 195663 0.348166
+Delivery 28323 28282 0.00144759
+OrderStatus 28038 28038 0
+StockLevel 28043 27899 0.00513497
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 22571 21778 0.0351336
+Payment 21381 21234 0.00687526
+Delivery 2021 2021 0
+OrderStatus 1997 1997 0
+StockLevel 2034 2030 0.00196657
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 45068 40475 0.101913
+Payment 42901 42032 0.0202559
+Delivery 4025 4023 0.000496894
+OrderStatus 3986 3986 0
+StockLevel 4027 4019 0.00198659
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 90277 69021 0.235453
+Payment 85887 81090 0.0558525
+Delivery 7903 7897 0.000759205
+OrderStatus 7950 7950 0
+StockLevel 8079 7980 0.012254
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 135171 89792 0.335716
+Payment 128954 119521 0.0731501
+Delivery 12012 12001 0.000915751
+OrderStatus 12004 12004 0
+StockLevel 11896 11853 0.00361466
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 180161 100359 0.442948
+Payment 171750 154211 0.102119
+Delivery 16180 16161 0.00117429
+OrderStatus 15975 15975 0
+StockLevel 16006 15927 0.00493565
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 225337 100223 0.555231
+Payment 214528 175606 0.181431
+Delivery 20190 20168 0.00108965
+OrderStatus 19981 19981 0
+StockLevel 20097 19956 0.00701597
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 270505 112611 0.583701
+Payment 257398 217531 0.154885
+Delivery 24252 24230 0.000907142
+OrderStatus 23937 23937 0
+StockLevel 24209 23899 0.0128052
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 315554 97692 0.690411
+Payment 300173 220424 0.265677
+Delivery 28323 28283 0.00141228
+OrderStatus 28038 28038 0
+StockLevel 28045 27901 0.00513461
+

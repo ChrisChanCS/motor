@@ -1,9 +1,9 @@
 {
   "tpcc": {
-    "order_remote_ratio": 60,
-    "payment_remote_ratio": 90,
-    "num_warehouse": 16,
-    "warehouse_bkt_num": 16,
+    "order_remote_ratio": 0,
+    "payment_remote_ratio": 0,
+    "num_warehouse": 8,
+    "warehouse_bkt_num": 8,
     "num_district_per_warehouse": 10,
     "district_bkt_num": 10,
     "num_customer_per_district": 3000,
