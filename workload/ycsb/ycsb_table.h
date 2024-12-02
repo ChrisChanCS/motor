@@ -8,7 +8,7 @@
 #include "base/common.h"
 #include "config/table_type.h"
 
-static constexpr auto YCSB_FIELD_SIZE = 10;
+static constexpr auto YCSB_FIELD_SIZE = 100;
 
 union ycsb_key_t
 {

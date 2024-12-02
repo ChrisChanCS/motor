@@ -4,11 +4,11 @@
 #pragma once
 
 /*********************** Configure workload **********************/
-#define WORKLOAD_TPCC 1
+#define WORKLOAD_TPCC 0
 #define WORKLOAD_TATP 0
 #define WORKLOAD_SmallBank 0
 #define WORKLOAD_MICRO 0
-#define WORKLOAD_YCSB 0
+#define WORKLOAD_YCSB 1
 
 #if WORKLOAD_TPCC
 #define MAX_VALUE_SIZE 664
@@ -27,7 +27,7 @@
 #define MAX_VCELL_NUM 4
 
 #elif WORKLOAD_YCSB
-#define MAX_VALUE_SIZE 120
+#define MAX_VALUE_SIZE 1200
 #define MAX_VCELL_NUM 4
 #endif
 

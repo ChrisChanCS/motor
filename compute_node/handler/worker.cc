@@ -394,6 +394,191 @@ void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
     case TPCCTxType::kDelivery:
     {
       thread_local_try_times[uint64_t(tx_type)]++;
+      do
+      {
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        tx_committed = TxDelivery(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kNewOrder:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      do
+      {
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        tx_committed = TxNewOrder(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kOrderStatus:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      do
+      {
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        tx_committed = TxOrderStatus(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kPayment:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      do
+      {
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        tx_committed = TxPayment(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    case TPCCTxType::kStockLevel:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
+      do
+      {
+        clock_gettime(CLOCK_REALTIME, &tx_start_time);
+        tx_committed = TxStockLevel(tpcc_client, random_generator, yield, iter, txn);
+        if (!tx_committed)
+        {
+          iter = ++tx_id_generator;
+        }
+      } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
+      if (tx_committed)
+        thread_local_commit_times[uint64_t(tx_type)]++;
+    }
+    break;
+    default:
+      printf("Unexpected transaction type %d\n", static_cast<int>(tx_type));
+      abort();
+    }
+
+    /********************************** Stat begin *****************************************/
+    // Stat after one transaction finishes
+    if (tx_committed)
+    {
+      clock_gettime(CLOCK_REALTIME, &tx_end_time);
+      double tx_usec = (tx_end_time.tv_sec - tx_start_time.tv_sec) * 1000000 + (double)(tx_end_time.tv_nsec - tx_start_time.tv_nsec) / 1000;
+      timer[stat_committed_tx_total++] = tx_usec;
+    }
+
+    if (stat_attempted_tx_total >= (ATTEMPTED_NUM - finished_num))
+    {
+      // A coroutine calculate the total execution time and exits
+      clock_gettime(CLOCK_REALTIME, &msr_end);
+      // double msr_usec = (msr_end.tv_sec - msr_start.tv_sec) * 1000000 + (double) (msr_end.tv_nsec - msr_start.tv_nsec) / 1000;
+      double msr_sec = (msr_end.tv_sec - msr_start.tv_sec) + (double)(msr_end.tv_nsec - msr_start.tv_nsec) / 1000000000;
+      RecordTpLat(msr_sec);
+
+      break;
+    }
+
+    try_times[thread_local_id] = stat_attempted_tx_total;
+
+    if (to_crash[thread_local_id])
+    {
+      clock_gettime(CLOCK_REALTIME, &msr_end);
+      // std::cerr << "Thread " << thread_gid << " crash" << std::endl;
+      double msr_sec = (msr_end.tv_sec - msr_start.tv_sec) + (double)(msr_end.tv_nsec - msr_start.tv_nsec) / 1000000000;
+      RecordTpLat(msr_sec);
+      // for (int i = 0; i < coro_num; i++) {
+      //   if (locked_key_table[i].num_entry) {
+      //     RDMA_LOG(INFO) << "cid: " << i << ", txid: " << locked_key_table[i].tx_id << ", num_entry: " << locked_key_table[i].num_entry;
+      //   }
+      // }
+      report_crash[thread_local_id] = true;
+
+      break;
+    }
+
+#if PROBE_TP
+
+    if (probe[thread_local_id])
+    {
+      // Probe tp
+      double msr_sec, attemp_tput, tx_tput;
+      clock_gettime(CLOCK_REALTIME, &msr_end);
+
+      msr_sec = (msr_end.tv_sec - last_end.tv_sec) + (double)(msr_end.tv_nsec - last_end.tv_nsec) / 1000000000;
+      last_end = msr_end;
+
+      attemp_tput = (double)(stat_attempted_tx_total - last_stat_attempted_tx_total) / msr_sec;
+      last_stat_attempted_tx_total = stat_attempted_tx_total;
+
+      tx_tput = (double)(stat_committed_tx_total - last_stat_committed_tx_total) / msr_sec;
+      last_stat_committed_tx_total = stat_committed_tx_total;
+
+      tp_probe_list->emplace_back(TpProbe{.ctr = probe_times, .tp = tx_tput, .attemp_tp = attemp_tput});
+
+      probe[thread_local_id] = false;
+    }
+#endif
+    /********************************** Stat end *****************************************/
+  }
+
+  delete txn;
+}
+
+void RunTPCC_no_retry(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
+{
+  // Each coroutine has a txn: Each coroutine is a coordinator
+  TXN *txn = new TXN(meta_man,
+                     qp_man,
+                     thread_gid,
+                     coro_id,
+                     coro_sched,
+                     rdma_buffer_allocator,
+                     delta_offset_allocator,
+                     locked_key_table,
+                     addr_cache);
+  struct timespec tx_start_time, tx_end_time;
+  bool tx_committed = false;
+
+  // Running transactions
+  clock_gettime(CLOCK_REALTIME, &msr_start);
+  last_end = msr_start;
+  while (true)
+  {
+    // Guarantee that each coroutine has a different seed
+    TPCCTxType tx_type = tpcc_workgen_arr[FastRand(&seed) % 100];
+    uint64_t iter = ++tx_id_generator; // Global atomic transaction id
+    stat_attempted_tx_total++;
+    // TLOG(INFO, thread_gid) << "Thread " << thread_gid << " attemps txn " << stat_attempted_tx_total << " txn id: " << iter;
+
+    clock_gettime(CLOCK_REALTIME, &tx_start_time);
+    switch (tx_type)
+    {
+    case TPCCTxType::kDelivery:
+    {
+      thread_local_try_times[uint64_t(tx_type)]++;
       tx_committed = TxDelivery(tpcc_client, random_generator, yield, iter, txn);
       if (tx_committed)
         thread_local_commit_times[uint64_t(tx_type)]++;
@@ -429,13 +614,13 @@ void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
       {
         thread_local_try_times[uint64_t(tx_type)]++;
         clock_gettime(CLOCK_REALTIME, &tx_start_time);
-
         tx_committed = TxStockLevel(tpcc_client, random_generator, yield, iter, txn);
         if (!tx_committed)
         {
           iter = ++tx_id_generator;
         }
       } while (tx_committed != true);
+      // thread_local_try_times[uint64_t(tx_type)]++;
       if (tx_committed)
         thread_local_commit_times[uint64_t(tx_type)]++;
     }
@@ -701,7 +886,7 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
 
       assert(key[i] >= 0 && key[i] < num_keys_global);
 
-      if (readOnly <= readOnlyTransaction)
+      if (readOnly < readOnlyTransaction)
       {
         // read only
         update[i] = false;
@@ -727,11 +912,15 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
 
     thread_local_try_times[uint64_t(YCSBTxType::RMW)]++;
     stat_attempted_tx_total++;
-
-    clock_gettime(CLOCK_REALTIME, &tx_start_time);
-    tx_committed = TxRMW(yield, iter, txn, key, update);
-
-    // tx_committed = TxUpdateOne(yield, iter, txn, key);
+    do
+    {
+      clock_gettime(CLOCK_REALTIME, &tx_start_time);
+      tx_committed = TxRMW(yield, iter, txn, key, update);
+      if (!tx_committed)
+      {
+        iter = ++tx_id_generator;
+      }
+    } while (tx_committed != true);
 
     if (tx_committed)
       thread_local_commit_times[uint64_t(YCSBTxType::RMW)]++;

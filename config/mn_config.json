@@ -6,7 +6,7 @@
     "local_meta_port": 12347,
     "use_pm": 0,
     "pm_root": "/dev/dax0.1",
-    "reserve_GB": 6,
+    "reserve_GB": 60,
     "max_client_num_per_mn": 50,
     "per_thread_delta_size_MB": 50,
     "workload": "TPCC"
