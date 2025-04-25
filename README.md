@@ -19,14 +19,14 @@ Motor uses old-version library. To compile Motor, we try the MLNX_OFED_LINUX-4.9
 ```sh 
 $ sudo apt update
 $ sudo apt install net-tools
-$ sudo apt remove \--purge qemu-system-common qemu-utils libguestfs0 libiscsi7 librados2 librdmacm1 libguestfs-tools librbd1 libguestfs-perl qemu-block-extra
-$ sudo apt install \-y chrpath libgfortran4 tk automake pkg-config autotools-dev m4 dpatch debhelper autoconf libltdl-dev quilt swig bison tcl graphviz gfortran flex
+$ sudo apt remove --purge qemu-system-common qemu-utils libguestfs0 libiscsi7 librados2 librdmacm1 libguestfs-tools librbd1 libguestfs-perl qemu-block-extra
+$ sudo apt install -y chrpath libgfortran4 tk automake pkg-config autotools-dev m4 dpatch debhelper autoconf libltdl-dev quilt swig bison tcl graphviz gfortran flex
 ```
 
 - Install MLNX_OFED_LINUX.
 
 ```sh 
-$ sudo ./mlnxofedinstall \--with-mlnx-ofed-kernel \--without-fw-update
+$ sudo ./mlnxofedinstall --with-mlnx-ofed-kernel --without-fw-update
 $ sudo /etc/init.d/openibd restart
 ```
 
@@ -40,8 +40,8 @@ $ sudo ip addr add 10.31.1.152/28 dev ens2 # use an network interface for RDMA
 - Enable mutual network connection, e.g., firewall-cmd.
 
 ```sh 
-$ sudo firewall-cmd \--zone=trusted \--add-source=10.31.1.151
-$ sudo firewall-cmd \--zone=trusted \--add-source=10.31.1.152
+$ sudo firewall-cmd --zone=trusted --add-source=10.31.1.151
+$ sudo firewall-cmd --zone=trusted --add-source=10.31.1.152
 ```
 
 - At last, you should past the client/server test.
