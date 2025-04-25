@@ -15,7 +15,7 @@ This script can help you run TPCC in different settings, including different cro
 ```
 
 # YCSB
-This script only runs YCSB with 40 threads. Some static parameters are:
+This script only runs YCSB with 40 threads and different read/write ratios and cross-partition probabilitis. Some static parameters are:
 
 ```
 "partition_num": 8,
