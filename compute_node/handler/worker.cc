@@ -362,7 +362,7 @@ void RunSmallBank(coro_yield_t &yield, coro_id_t coro_id)
   delete txn;
 }
 
-void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
+void RunTPCC_retry(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
 {
   // Each coroutine has a txn: Each coroutine is a coordinator
   TXN *txn = new TXN(meta_man,
@@ -547,7 +547,7 @@ void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
   delete txn;
 }
 
-void RunTPCC_no_retry(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
+void RunTPCC(coro_yield_t &yield, coro_id_t coro_id, int finished_num)
 {
   // Each coroutine has a txn: Each coroutine is a coordinator
   TXN *txn = new TXN(meta_man,
@@ -912,15 +912,15 @@ void RunYCSB(coro_yield_t &yield, coro_id_t coro_id)
 
     thread_local_try_times[uint64_t(YCSBTxType::RMW)]++;
     stat_attempted_tx_total++;
-    do
+    // do
+    // {
+    clock_gettime(CLOCK_REALTIME, &tx_start_time);
+    tx_committed = TxRMW(yield, iter, txn, key, update);
+    if (!tx_committed)
     {
-      clock_gettime(CLOCK_REALTIME, &tx_start_time);
-      tx_committed = TxRMW(yield, iter, txn, key, update);
-      if (!tx_committed)
-      {
-        iter = ++tx_id_generator;
-      }
-    } while (tx_committed != true);
+      iter = ++tx_id_generator;
+    }
+    // } while (tx_committed != true);
 
     if (tx_committed)
       thread_local_commit_times[uint64_t(YCSBTxType::RMW)]++;

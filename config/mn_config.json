@@ -8,7 +8,7 @@
     "pm_root": "/dev/dax0.1",
     "reserve_GB": 60,
     "max_client_num_per_mn": 50,
-    "per_thread_delta_size_MB": 50,
+    "per_thread_delta_size_MB": 400,
     "workload": "TPCC"
   },
   "remote_compute_nodes": {

@@ -1081,3 +1081,6 @@ RMW 600012 600000 1.99996e-05
 Motor tx_type try_num commit_num abort_rate
 RMW 600012 600000 1.99996e-05
 
+Motor tx_type try_num commit_num abort_rate
+RMW 2100632 2000000 0.0479056
+

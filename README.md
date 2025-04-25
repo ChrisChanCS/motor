@@ -1,3 +1,61 @@
+# Procedure to reproduce Tigon's experiment
+This document explains how to reproduce Tigon's results, from how to establish the environment to how to run scripts.
+
+# Requirement
+- Hardware
+  - BCM57414 NetXtreme-E 10Gb/25Gb RDMA Ethernet Controller
+- Software
+  - Operating System: Ubuntu 20.04 LTS
+- Machines
+  - 4 machines: 1 compute node and 3 memory nodes (including 1 primary and 2 backups)
+
+# Establish RDMA environment in Ubuntu 20.04
+Motor uses old-version library. To compile Motor, we try the MLNX_OFED_LINUX-4.9-0.1.7.0 and it works.
+
+- First, please download MLNX_OFED_LINUX-4.9-0.1.7.0-ubuntu20.04-x86_64.tgz in the official websit.
+
+- Ensure you have correct vm environment.
+
+```sh 
+$ sudo apt update
+$ sudo apt install net-tools
+$ sudo apt remove \--purge qemu-system-common qemu-utils libguestfs0 libiscsi7 librados2 librdmacm1 libguestfs-tools librbd1 libguestfs-perl qemu-block-extra
+$ sudo apt install \-y chrpath libgfortran4 tk automake pkg-config autotools-dev m4 dpatch debhelper autoconf libltdl-dev quilt swig bison tcl graphviz gfortran flex
+```
+
+- Install MLNX_OFED_LINUX.
+
+```sh 
+$ sudo ./mlnxofedinstall \--with-mlnx-ofed-kernel \--without-fw-update
+$ sudo /etc/init.d/openibd restart
+```
+
+- Then, you should activate RDMA device.
+
+```sh 
+$ sudo ip link set ens2 up # check your device name, here is ens2
+$ sudo ip addr add 10.31.1.152/28 dev ens2 # use an network interface for RDMA
+```
+
+- Enable mutual network connection, e.g., firewall-cmd.
+
+```sh 
+$ sudo firewall-cmd \--zone=trusted \--add-source=10.31.1.151
+$ sudo firewall-cmd \--zone=trusted \--add-source=10.31.1.152
+```
+
+- At last, you should past the client/server test.
+
+```sh 
+$ ib_send_bw # server
+$ ib_send_bw 10.31.1.152 # client
+```
+
+# Run
+Before the experiment, please see Motor's original instructions to setup ip configuration of your cluster. We provide scripts in the ```/script/``` folder.
+
+
+
 # Motor
 An open-source repository for our paper in [OSDI 2024](https://www.usenix.org/conference/osdi24).
 

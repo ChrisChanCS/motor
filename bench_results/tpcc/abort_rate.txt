@@ -845,3 +845,17 @@ Delivery 24252 24252 0
 OrderStatus 23937 23937 0
 StockLevel 23908 23901 0.000292789
 
+Motor tx_type try_num commit_num abort_rate
+NewOrder 900243 333589 0.629446
+Payment 859581 735059 0.144864
+Delivery 80219 80131 0.001097
+OrderStatus 80113 80113 0
+StockLevel 80294 79818 0.00592821
+
+Motor tx_type try_num commit_num abort_rate
+NewOrder 360827 248459 0.311418
+Payment 343030 322172 0.0608052
+Delivery 32232 32191 0.00127203
+OrderStatus 32031 32031 0
+StockLevel 31983 31867 0.00362693
+
