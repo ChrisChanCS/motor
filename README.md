@@ -54,7 +54,7 @@ $ ib_send_bw 10.31.1.152 # client
 ```
 
 # Run
-Before the experiment, please see Motor's original instructions to setup ip configuration of your cluster. We provide an example below and scripts to run Motor in the ```/script/``` folder.
+Before the experiment, please see Motor's original instructions to setup ip configuration (```config/mn_config.json``` and ```config/cn_config.json```) of your cluster. We provide an example below and scripts to run Motor in the ```/script/``` folder.
 
 - Config compute node.
 
