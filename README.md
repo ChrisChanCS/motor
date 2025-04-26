@@ -104,7 +104,7 @@ Before the experiment, please see Motor's original instructions to setup ip conf
     "reserve_GB": 60, # please adjust this number if program reports not enough space
     "max_client_num_per_mn": 50,
     "per_thread_delta_size_MB": 400, # please adjust this number if program reports not enough delta space
-    "workload": "TPCC"
+    "workload": "TPCC" # consistent with workload specified in txn/flags.h
   },
   "remote_compute_nodes": {
     "compute_node_ips": [
