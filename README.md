@@ -52,7 +52,85 @@ $ ib_send_bw 10.31.1.152 # client
 ```
 
 # Run
-Before the experiment, please see Motor's original instructions to setup ip configuration of your cluster. We provide scripts in the ```/script/``` folder.
+Before the experiment, please see Motor's original instructions to setup ip configuration of your cluster. We provide an example below and scripts to run Motor in the ```/script/``` folder.
+
+- Config compute node.
+
+```
+{
+  "local_compute_node": {
+    "machine_num": 1,
+    "machine_id": 0,
+"thread_num_per_machine": 16,
+"coroutine_num": 3,
+    "local_port": 12345,
+    "comment": "1 is snapshot isolation, 2 is serializability",
+"iso_level": 2,
+    "crash_tnum": 20,
+    "crash_time_ms": 6000,
+    "tp_probe_interval_ms": 1
+  },
+  "remote_mem_nodes": {
+    "remote_ips": [
+      "10.31.1.147", # ip of memory node 1
+      "10.31.1.148", # ip of memory node 2
+      "10.31.1.157" # ip of memory node 3
+    ],
+    "remote_ports": [
+      12346,
+      12346,
+      12346
+    ],
+    "remote_meta_ports": [
+      12347,
+      12347,
+      12347
+    ]
+  }
+}
+```
+
+- Config memory node.
+
+```
+{
+  "local_memory_node": {
+    "machine_num": 3, # memory count
+    "machine_id": 0, # index of this memory node, here is 0
+    "local_port": 12346,
+    "local_meta_port": 12347,
+    "use_pm": 0,
+    "pm_root": "/dev/dax0.1",
+    "reserve_GB": 60, # please adjust this number if program reports not enough space
+    "max_client_num_per_mn": 50,
+    "per_thread_delta_size_MB": 400, # please adjust this number if program reports not enough delta space
+    "workload": "TPCC"
+  },
+  "remote_compute_nodes": {
+    "compute_node_ips": [
+      "10.0.0.7" # ip of compute node
+    ],
+    "compute_node_ports": [
+      12345
+    ]
+  },
+  "other_memory_nodes": {
+    "memory_node_ips": [
+      "10.0.0.3", # ip of memory node 1
+      "10.0.0.5" # ip of memory node 2
+    ],
+    "memory_node_ids": [
+      1, # index of memory node 1
+      2 # index of memory node 2
+    ],
+    "memory_node_ports": [
+      12346,
+      12346
+    ]
+  }
+}
+```
+
 
 
 
