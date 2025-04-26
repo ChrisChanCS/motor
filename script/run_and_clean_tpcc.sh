@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # memory and compute node
-MN_NODE=("129.114.109.131" "129.114.109.166" "129.114.109.83")
-CN_NODE_0="129.114.108.225"
+MN_NODE=("129.114.109.23" "129.114.108.84" "129.114.108.13")
+CN_NODE_0="129.114.109.66"
 
 # define order_remote_ratio and payment_remote_ratio
 ORDER_REMOTE_RATIO=(0 10 20 30 40 50 60)
