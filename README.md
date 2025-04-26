@@ -23,14 +23,16 @@ $ sudo apt remove --purge qemu-system-common qemu-utils libguestfs0 libiscsi7 li
 $ sudo apt install -y chrpath libgfortran4 tk automake pkg-config autotools-dev m4 dpatch debhelper autoconf libltdl-dev quilt swig bison tcl graphviz gfortran flex
 ```
 
-- Install MLNX_OFED_LINUX.
+- Decompress and then install MLNX_OFED_LINUX.
 
-```sh 
+```sh
+$ tar -xvf MLNX_OFED_LINUX-4.9-0.1.7.0-ubuntu20.04-x86_64.tgz
+$ cd MLNX_OFED_LINUX-4.9-0.1.7.0-ubuntu20.04-x86_64/
 $ sudo ./mlnxofedinstall --with-mlnx-ofed-kernel --without-fw-update
 $ sudo /etc/init.d/openibd restart
 ```
 
-- Then, you should activate RDMA device.
+- Then, you should activate RDMA device by assigning network interface.
 
 ```sh 
 $ sudo ip link set ens2 up # check your device name, here is ens2
@@ -44,7 +46,7 @@ $ sudo firewall-cmd --zone=trusted --add-source=10.31.1.151
 $ sudo firewall-cmd --zone=trusted --add-source=10.31.1.152
 ```
 
-- At last, you should past the client/server test.
+- At last, you should past the client/server RDMA test.
 
 ```sh 
 $ ib_send_bw # server
