@@ -61,11 +61,11 @@ Before the experiment, please see Motor's original instructions to setup ip conf
   "local_compute_node": {
     "machine_num": 1,
     "machine_id": 0,
-"thread_num_per_machine": 16,
-"coroutine_num": 3,
+    "thread_num_per_machine": 16,
+    "coroutine_num": 3,
     "local_port": 12345,
     "comment": "1 is snapshot isolation, 2 is serializability",
-"iso_level": 2,
+    "iso_level": 2,
     "crash_tnum": 20,
     "crash_time_ms": 6000,
     "tp_probe_interval_ms": 1
